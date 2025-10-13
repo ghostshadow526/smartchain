@@ -14,10 +14,10 @@ export default function CryptoPriceCard({ coinName, actualPrice, displayedPrice 
       </CardHeader>
       <CardContent className="space-y-2">
         <div className="text-sm text-foreground/70">
-          Actual: ${actualPrice.toLocaleString()}
+          Actual Price: ${actualPrice.toLocaleString()}
         </div>
         <div className="text-2xl font-bold">
-          Displayed: <strong>${displayedPrice}</strong>
+          Promotional Price: <strong>${displayedPrice}</strong>
         </div>
       </CardContent>
     </Card>

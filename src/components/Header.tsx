@@ -21,7 +21,7 @@ export default function Header() {
       <div className="container flex h-14 items-center">
         <Link href="/" className="flex items-center gap-2 mr-6">
           <Banknote className="h-6 w-6" />
-          <span className="font-bold">BlackVault</span>
+          <span className="font-bold">ECNFOUNDATION</span>
         </Link>
         <nav className="flex items-center gap-6 text-sm">
           <Link href="/trade" className="text-foreground/60 transition-colors hover:text-foreground/80">

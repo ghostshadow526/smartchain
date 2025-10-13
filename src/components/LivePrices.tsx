@@ -5,13 +5,15 @@ import CryptoPriceCard from './CryptoPriceCard';
 import { Skeleton } from './ui/skeleton';
 import type { CryptoPriceResponse } from '@/lib/types';
 
+const COIN_IDS = 'bitcoin,ethereum,dogecoin,cardano,solana,ripple,polkadot,chainlink,litecoin,bitcoin-cash,stellar,binancecoin,tether,usd-coin';
+
 export default function LivePrices() {
   const [prices, setPrices] = useState<CryptoPriceResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchPrices = async () => {
     try {
-      const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,dogecoin&vs_currencies=usd');
+      const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${COIN_IDS}&vs_currencies=usd`);
       if (!res.ok) {
         throw new Error('Failed to fetch prices');
       }
@@ -33,8 +35,8 @@ export default function LivePrices() {
 
   if (loading) {
     return (
-      <div id="prices" className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {[...Array(3)].map((_, i) => (
+      <div id="prices" className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {[...Array(8)].map((_, i) => (
           <div key={i} className="p-6 border rounded-lg bg-card space-y-4">
             <Skeleton className="h-6 w-1/2" />
             <Skeleton className="h-4 w-3/4" />
@@ -50,7 +52,7 @@ export default function LivePrices() {
   }
 
   return (
-    <div id="prices" className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div id="prices" className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
       {Object.entries(prices).map(([coin, data]) => {
         const fullPrice = data.usd;
         const halfPrice = (fullPrice / 2).toLocaleString('en-US', {

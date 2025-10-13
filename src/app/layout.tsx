@@ -6,7 +6,7 @@ import Footer from '@/components/Footer';
 import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
-  title: 'BlackVault Crypto',
+  title: 'ECNFOUNDATION',
   description: 'Trade smart. Trade fast. Trade in style.',
 };
 
