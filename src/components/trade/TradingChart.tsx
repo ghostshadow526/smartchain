@@ -92,20 +92,27 @@ export default function TradingChart({ coinId }: TradingChartProps) {
     useEffect(() => {
         const fetchChartData = async () => {
             try {
-                const isIntraday = parseInt(timeframe) <= 1;
-                const days = isIntraday ? timeframe : undefined;
-                const interval = isIntraday ? 'minutely' : 'daily';
-                let url = `https://api.coingecko.com/api/v3/coins/${coinId}/ohlc?vs_currency=usd&days=${timeframe}`;
+                 const response = await fetch(`https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=${timeframe}`);
+                const data = await response.json();
 
-                const response = await fetch(url);
-                const data: OHLCEntry[] = await response.json();
-                const formattedData: CandlestickData[] = data.map(d => ({
+                const ohlcData = data.prices.map((priceInfo: number[], index: number) => {
+                  const timestamp = priceInfo[0];
+                  const open = priceInfo[1];
+                  const close = index + 1 < data.prices.length ? data.prices[index + 1][1] : open;
+                  const high = Math.max(open, close);
+                  const low = Math.min(open, close);
+
+                  return [timestamp, open, high, low, close];
+                }) as OHLCEntry[];
+
+                const formattedData: CandlestickData[] = ohlcData.map((d: OHLCEntry) => ({
                     time: (d[0] / 1000) as UTCTimestamp,
                     open: d[1],
                     high: d[2],
                     low: d[3],
                     close: d[4],
                 }));
+                
                 setChartData(formattedData);
                 if (seriesRef.current) {
                     seriesRef.current.setData(formattedData);
