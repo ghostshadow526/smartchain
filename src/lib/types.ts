@@ -20,3 +20,13 @@ export interface Trade {
   time: string;
   type: 'buy' | 'sell';
 }
+
+export interface P2POffer {
+    id: string;
+    user: string;
+    coin: string;
+    amount: number;
+    price: number;
+    paymentMethods: string[];
+    country: string;
+}

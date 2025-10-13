@@ -82,15 +82,17 @@ export default function TradePage() {
                     </SelectContent>
                 </Select>
             </div>
-            <OrderBook />
+            <OrderBook coinId={currentPair} />
         </Card>
 
         {/* Center Column */}
         <div className="flex flex-col gap-2 h-full">
             <Card>
                 <CardContent className="p-4">
-                    <div className={`text-3xl font-bold transition-colors duration-300 ${priceColor}`}>
-                        {currentPrice ? `$${currentPrice.toLocaleString()}` : <Skeleton className="h-8 w-32" />}
+                    <div className="flex justify-between items-center">
+                        <div className={`text-3xl font-bold transition-colors duration-300 ${priceColor}`}>
+                            {currentPrice ? `$${currentPrice.toLocaleString()}` : <Skeleton className="h-8 w-32" />}
+                        </div>
                     </div>
                 </CardContent>
             </Card>
@@ -101,7 +103,7 @@ export default function TradePage() {
 
         {/* Right Column */}
         <div className="flex flex-col gap-2 h-full">
-            <BuySellForm />
+            <BuySellForm currentPrice={currentPrice} coinId={currentPair} />
             <RecentTrades />
         </div>
       </div>

@@ -15,24 +15,40 @@ const generateOrder = (basePrice: number, isBid: boolean): Order => {
   };
 };
 
-export default function OrderBook() {
+const getBasePrice = (coinId: string) => {
+    switch (coinId) {
+        case 'bitcoin':
+            return 60000;
+        case 'ethereum':
+            return 3000;
+        case 'dogecoin':
+            return 0.15;
+        default:
+            return 60000;
+    }
+}
+
+export default function OrderBook({ coinId }: { coinId: string }) {
   const [bids, setBids] = useState<Order[]>([]);
   const [asks, setAsks] = useState<Order[]>([]);
+  const basePrice = getBasePrice(coinId);
+  const coinSymbol = coinId === 'bitcoin' ? 'BTC' : coinId === 'ethereum' ? 'ETH' : 'DOGE';
   
   useEffect(() => {
-    // Initial data
-    const initialBids = Array.from({ length: 20 }, () => generateOrder(60000, true)).sort((a, b) => b.price - a.price);
-    const initialAsks = Array.from({ length: 20 }, () => generateOrder(60010, false)).sort((a, b) => a.price - b.price);
+    const newBasePrice = getBasePrice(coinId);
+    const initialBids = Array.from({ length: 20 }, () => generateOrder(newBasePrice, true)).sort((a, b) => b.price - a.price);
+    const initialAsks = Array.from({ length: 20 }, () => generateOrder(newBasePrice + (newBasePrice * 0.001) , false)).sort((a, b) => a.price - b.price);
     setBids(initialBids);
     setAsks(initialAsks);
 
     const interval = setInterval(() => {
-      setBids(prev => [...prev.slice(1), generateOrder(60000, true)].sort((a, b) => b.price - a.price));
-      setAsks(prev => [...prev.slice(1), generateOrder(60010, false)].sort((a, b) => a.price - b.price));
+        const currentBasePrice = getBasePrice(coinId);
+        setBids(prev => [...prev.slice(1), generateOrder(currentBasePrice, true)].sort((a, b) => b.price - a.price));
+        setAsks(prev => [...prev.slice(1), generateOrder(currentBasePrice + (currentBasePrice * 0.001), false)].sort((a, b) => a.price - b.price));
     }, 2000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [coinId]);
 
   return (
     <div className="flex-grow h-0 flex flex-col">
@@ -43,7 +59,7 @@ export default function OrderBook() {
                     <TableHeader>
                         <TableRow>
                             <TableHead className="text-xs">Price (USD)</TableHead>
-                            <TableHead className="text-xs">Amount (BTC)</TableHead>
+                            <TableHead className="text-xs">Amount ({coinSymbol})</TableHead>
                             <TableHead className="text-right text-xs">Total (USD)</TableHead>
                         </TableRow>
                     </TableHeader>
@@ -62,7 +78,9 @@ export default function OrderBook() {
                     </Table>
                 </div>
                 <div className="py-2 px-4 border-t border-b text-lg font-bold">
-                    {/* Current price could go here */}
+                     {asks.length > 0 && bids.length > 0 ? (
+                        <span>${((asks[0].price + bids[0].price) / 2).toFixed(2)}</span>
+                    ) : null}
                 </div>
                  <div className="overflow-y-auto">
                     <Table>

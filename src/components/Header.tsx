@@ -27,6 +27,9 @@ export default function Header() {
           <Link href="/trade" className="text-foreground/60 transition-colors hover:text-foreground/80">
             Trade
           </Link>
+          <Link href="/p2p" className="text-foreground/60 transition-colors hover:text-foreground/80">
+            P2P
+          </Link>
         </nav>
         <div className="flex flex-1 items-center justify-end gap-2">
           {loading ? (
