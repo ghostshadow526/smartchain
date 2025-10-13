@@ -11,6 +11,20 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from '@/components/ui/card';
 
+const getBasePrice = (coinId: string) => {
+    switch (coinId) {
+        case 'bitcoin': return 60000;
+        case 'ethereum': return 3000;
+        case 'dogecoin': return 0.15;
+        default: return 60000;
+    }
+};
+
+const generateMockPrice = (coinId: string) => {
+    const basePrice = getBasePrice(coinId);
+    return basePrice + (Math.random() - 0.5) * (basePrice * 0.01);
+}
+
 export default function TradePage() {
   const { user, loading } = useAuth();
   const router = useRouter();
@@ -25,25 +39,18 @@ export default function TradePage() {
   }, [user, loading, router]);
   
   useEffect(() => {
-    const fetchPrice = async () => {
-      try {
-        const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${currentPair}&vs_currencies=usd`);
-        const data = await res.json();
-        const newPrice = data[currentPair].usd;
-
-        setCurrentPrice(prevPrice => {
-          if (prevPrice !== null) {
-            setPriceChange(newPrice > prevPrice ? 1 : (newPrice < prevPrice ? -1 : 0));
-          }
-          return newPrice;
-        });
-      } catch (error) {
-        console.error("Failed to fetch price:", error);
-      }
+    const updatePrice = () => {
+      const newPrice = generateMockPrice(currentPair);
+      setCurrentPrice(prevPrice => {
+        if (prevPrice !== null) {
+          setPriceChange(newPrice > prevPrice ? 1 : (newPrice < prevPrice ? -1 : 0));
+        }
+        return newPrice;
+      });
     };
     
-    fetchPrice();
-    const interval = setInterval(fetchPrice, 5000);
+    updatePrice(); // Initial price
+    const interval = setInterval(updatePrice, 2000); // Update price every 2 seconds
     return () => clearInterval(interval);
   }, [currentPair]);
 
