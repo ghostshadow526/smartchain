@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { createChart, IChartApi, CandlestickData, ColorType, UTCTimestamp, LineStyle, ISeriesApi } from 'lightweight-charts';
-import type { OHLCEntry } from '@/lib/types';
 import { Skeleton } from '../ui/skeleton';
 import { Button } from '../ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
@@ -39,6 +38,39 @@ const calculateEMA = (data: CandlestickData[], period: number) => {
     return ema;
 };
 
+const getBasePriceForMock = (coinId: string) => {
+    switch (coinId) {
+        case 'bitcoin': return 60000;
+        case 'ethereum': return 3000;
+        case 'dogecoin': return 0.15;
+        default: return 60000;
+    }
+};
+
+const generateMockCandle = (time: UTCTimestamp, lastClose: number): CandlestickData => {
+    const open = lastClose + (Math.random() - 0.5) * 10;
+    const close = open + (Math.random() - 0.5) * 10;
+    const high = Math.max(open, close) + Math.random() * 5;
+    const low = Math.min(open, close) - Math.random() * 5;
+    return { time, open, high, low, close };
+};
+
+const generateMockData = (coinId: string, days: number): CandlestickData[] => {
+    const data: CandlestickData[] = [];
+    let lastClose = getBasePriceForMock(coinId);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    for (let i = 0; i < days; i++) {
+        const date = new Date(today);
+        date.setDate(date.getDate() - (days - 1 - i));
+        const time = (date.getTime() / 1000) as UTCTimestamp;
+        const candle = generateMockCandle(time, lastClose);
+        data.push(candle);
+        lastClose = candle.close;
+    }
+    return data;
+}
 
 export default function TradingChart({ coinId }: TradingChartProps) {
     const chartContainerRef = useRef<HTMLDivElement>(null);
@@ -90,29 +122,11 @@ export default function TradingChart({ coinId }: TradingChartProps) {
     }, []);
 
     useEffect(() => {
-        const fetchChartData = async () => {
-            try {
-                 const response = await fetch(`https://api.coingecko.com/api/v3/coins/${coinId}/ohlc?vs_currency=usd&days=${timeframe}`);
-                const data: OHLCEntry[] = await response.json();
-
-                const formattedData: CandlestickData[] = data.map((d: OHLCEntry) => ({
-                    time: (d[0] / 1000) as UTCTimestamp,
-                    open: d[1],
-                    high: d[2],
-                    low: d[3],
-                    close: d[4],
-                }));
-                
-                setChartData(formattedData);
-                if (seriesRef.current) {
-                    seriesRef.current.setData(formattedData);
-                }
-            } catch (error) {
-                console.error("Failed to fetch chart data", error);
-            }
-        };
-
-        fetchChartData();
+        const mockData = generateMockData(coinId, parseInt(timeframe));
+        setChartData(mockData);
+        if (seriesRef.current) {
+            seriesRef.current.setData(mockData);
+        }
     }, [coinId, timeframe]);
     
     useEffect(() => {
@@ -152,7 +166,7 @@ export default function TradingChart({ coinId }: TradingChartProps) {
     return (
         <div className="w-full h-full relative flex flex-col">
             <div className="flex-grow relative" ref={chartContainerRef}>
-                <Skeleton className="absolute inset-0 w-full h-full" />
+                {chartData.length === 0 && <Skeleton className="absolute inset-0 w-full h-full" />}
             </div>
             <div className="flex items-center justify-between p-2 border-t border-border">
                 <div className="flex items-center gap-2">
