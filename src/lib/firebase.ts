@@ -43,7 +43,12 @@ export async function ensureUserDoc(uid: string, data = {}) {
   const ref = doc(db, 'users', uid);
   const snap = await getDoc(ref);
   if (!snap.exists()) {
-    await setDoc(ref, { createdAt: Date.now(), watchlist: [], portfolio: [], ...data });
+    // Mock portfolio data for new users
+    const mockPortfolio = [
+      { id: 'bitcoin', name: 'Bitcoin', symbol: 'BTC', amount: 0.05, price: 60000 },
+      { id: 'ethereum', name: 'Ethereum', symbol: 'ETH', amount: 1.5, price: 3000 },
+    ];
+    await setDoc(ref, { createdAt: Date.now(), portfolio: mockPortfolio, ...data });
   }
 }
 

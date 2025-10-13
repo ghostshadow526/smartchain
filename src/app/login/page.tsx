@@ -32,7 +32,7 @@ export default function LoginPage() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       await signIn(values.email, values.password);
-      router.push('/trade');
+      router.push('/dashboard');
     } catch (error: any) {
       toast({
         title: "Login Failed",

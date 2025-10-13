@@ -37,7 +37,7 @@ export default function SignUpPage() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       await signUp(values.email, values.password);
-      router.push('/trade');
+      router.push('/dashboard');
     } catch (error: any) {
       toast({
         title: "Sign Up Failed",
