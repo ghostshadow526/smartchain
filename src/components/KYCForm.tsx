@@ -42,7 +42,17 @@ export default function KYCForm({ onVerificationSubmit }: { onVerificationSubmit
 
     try {
       const authRes = await fetch(authenticationEndpoint);
+      
+      if (!authRes.ok) {
+        const errorText = await authRes.text();
+        throw new Error(`Failed to authenticate with ImageKit: ${authRes.status} ${authRes.statusText} - ${errorText}`);
+      }
+      
       const authData = await authRes.json();
+
+      if (!authData.token || !authData.expire || !authData.signature) {
+        throw new Error("Invalid authentication parameters received from server.");
+      }
 
       const response = await imageKit.upload({
         file: file,
@@ -53,12 +63,12 @@ export default function KYCForm({ onVerificationSubmit }: { onVerificationSubmit
       });
 
       setter({ status: 'success', url: response.url, file });
-    } catch (error) {
-      console.error("Upload Error:", error);
+    } catch (error: any) {
+      console.error("Upload Error:", error.message || error);
       setter({ status: 'error', file });
       toast({
         title: 'Upload Failed',
-        description: 'There was an error uploading your file. Please try again.',
+        description: error.message || 'There was an error uploading your file. Please try again.',
         variant: 'destructive',
       });
     }
