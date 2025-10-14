@@ -1,6 +1,6 @@
 import { initializeApp, getApps } from 'firebase/app';
-import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
-import { getFirestore, doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile } from 'firebase/auth';
+import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: "AIzaSyCWBzmgogEaTQjli0M8ZNfKL66jUKrV2GM",
@@ -25,8 +25,32 @@ export async function signIn(email: string, password: string): Promise<import('f
   return signInWithEmailAndPassword(auth, email, password);
 }
 
-export async function signUp(email: string, password: string): Promise<import('firebase/auth').UserCredential> {
-  return createUserWithEmailAndPassword(auth, email, password);
+export async function checkUsernameExists(username: string): Promise<boolean> {
+    const usersRef = collection(db, "users");
+    const q = query(usersRef, where("username", "==", username));
+    const querySnapshot = await getDocs(q);
+    return !querySnapshot.empty;
+}
+
+export async function signUp(email: string, password: string, username: string): Promise<import('firebase/auth').UserCredential> {
+  const usernameExists = await checkUsernameExists(username);
+  if (usernameExists) {
+    throw new Error('username-unavailable');
+  }
+
+  try {
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    if (userCredential.user) {
+        await updateProfile(userCredential.user, { displayName: username });
+        await ensureUserDoc(userCredential.user.uid, { username });
+    }
+    return userCredential;
+  } catch(error: any) {
+    if (error.code === 'auth/email-already-in-use') {
+        throw new Error('email-unavailable');
+    }
+    throw error;
+  }
 }
 
 export async function signOutUser(): Promise<void> {
@@ -39,16 +63,16 @@ export async function getUserDoc(uid: string) {
   return snap.exists() ? snap.data() : null;
 }
 
-export async function ensureUserDoc(uid: string, data = {}) {
+export async function ensureUserDoc(uid: string, data: { username: string }) {
   const ref = doc(db, 'users', uid);
   const snap = await getDoc(ref);
   if (!snap.exists()) {
-    // Mock portfolio data for new users
-    const mockPortfolio = [
-      { id: 'bitcoin', name: 'Bitcoin', symbol: 'BTC', amount: 0.05, price: 60000 },
-      { id: 'ethereum', name: 'Ethereum', symbol: 'ETH', amount: 1.5, price: 3000 },
-    ];
-    await setDoc(ref, { createdAt: Date.now(), portfolio: mockPortfolio, ...data });
+    await setDoc(ref, { 
+        username: data.username,
+        createdAt: new Date().toISOString(), 
+        portfolio: [],
+        kycStatus: 'not-started',
+    });
   }
 }
 
