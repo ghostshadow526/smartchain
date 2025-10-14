@@ -160,7 +160,7 @@ function DirectBuyForm({ currentPrice }: { currentPrice: number | null }) {
                     <SelectContent>
                         <SelectItem value="bitcoin">Bitcoin (BTC)</SelectItem>
                         <SelectItem value="ethereum">Ethereum (ETH)</SelectItem>
-                        <SelectItem value="dogecoin">Dogecoin (DOGE)</SelectItem>
+                        <SelectItem value="tether">Tether (USDT)</SelectItem>
                     </SelectContent>
                 </Select>
             </div>
