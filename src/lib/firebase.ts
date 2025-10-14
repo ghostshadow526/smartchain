@@ -63,12 +63,13 @@ export async function getUserDoc(uid: string) {
   return snap.exists() ? snap.data() : null;
 }
 
-export async function ensureUserDoc(uid: string, data: { username: string }) {
+export async function ensureUserDoc(uid: string, data?: { username: string }) {
   const ref = doc(db, 'users', uid);
   const snap = await getDoc(ref);
   if (!snap.exists()) {
+    const username = data?.username || auth.currentUser?.displayName || 'user';
     await setDoc(ref, { 
-        username: data.username,
+        username: username,
         createdAt: new Date().toISOString(), 
         portfolio: [],
         kycStatus: 'not-started',
