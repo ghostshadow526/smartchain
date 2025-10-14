@@ -266,8 +266,7 @@ export default function DashboardPage() {
                             <DialogTitle>KYC Verification</DialogTitle>
                             <DialogDescription>Upload the required documents to verify your identity. This will help secure your account.</DialogDescription>
                           </DialogHeader>
-                          {/*<KYCForm onVerificationSubmit={() => setIsKycDialogOpen(false)} />*/}
-                          <p className="text-sm text-center text-muted-foreground py-8">KYC document upload is temporarily disabled. Please check back later.</p>
+                          <KYCForm onVerificationSubmit={() => setIsKycDialogOpen(false)} />
                       </DialogContent>
                   </Dialog>
                 )}
@@ -322,11 +321,15 @@ export default function DashboardPage() {
                                 </div>
                             </TableCell>
                             <TableCell>${coin.current_price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 8 })}</TableCell>
-                            <TableCell className={priceChange > 0 ? 'text-green-500' : 'text-red-500'}>
-                                <div className="flex items-center gap-1">
-                                    {priceChange > 0 ? <ArrowUp size={14} /> : <ArrowDown size={14} />}
-                                    {priceChange.toFixed(2)}%
-                                </div>
+                            <TableCell className={priceChange && priceChange > 0 ? 'text-green-500' : 'text-red-500'}>
+                                {typeof priceChange === 'number' ? (
+                                    <div className="flex items-center gap-1">
+                                        {priceChange > 0 ? <ArrowUp size={14} /> : <ArrowDown size={14} />}
+                                        {priceChange.toFixed(2)}%
+                                    </div>
+                                ) : (
+                                    <span className="text-muted-foreground">N/A</span>
+                                )}
                             </TableCell>
                             <TableCell>{balance.toFixed(6)}</TableCell>
                             <TableCell className="text-right">${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
