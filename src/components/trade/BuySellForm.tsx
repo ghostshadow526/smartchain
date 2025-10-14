@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useState, useEffect } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Copy, Loader2 } from 'lucide-react';
+import { Copy, Loader2, Send } from 'lucide-react';
 
 interface BuySellFormProps {
     currentPrice: number | null;
@@ -71,7 +71,7 @@ function OrderForm({ type, price, coinId, user }: { type: 'buy' | 'sell', price:
         if (!numericTotal || numericTotal <= 0 || numericTotal > balance) {
             toast({
               title: "Insufficient USD Balance",
-              description: `You do not have enough USD to complete this purchase. Please deposit funds.`,
+              description: `You do not have enough USD to complete this purchase. Your balance is $${balance.toLocaleString()}.`,
               variant: "destructive",
             });
             return;
@@ -147,6 +147,7 @@ function DirectBuyForm({ currentPrice }: { currentPrice: number | null }) {
     const [received, setReceived] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [depositAddress, setDepositAddress] = useState('');
+    const [purchaseState, setPurchaseState] = useState<'form' | 'address' | 'pending'>('form');
     const { toast } = useToast();
 
     useEffect(() => {
@@ -156,6 +157,8 @@ function DirectBuyForm({ currentPrice }: { currentPrice: number | null }) {
         } else {
             setReceived('');
         }
+        // Reset state if coin changes
+        setPurchaseState('form');
         setDepositAddress('');
     }, [amount, currentPrice, coin]);
     
@@ -165,10 +168,19 @@ function DirectBuyForm({ currentPrice }: { currentPrice: number | null }) {
             const coinData = COINS_WITH_ADDRESSES.find(c => c.id === coin);
             if (coinData) {
                 setDepositAddress(coinData.address);
+                setPurchaseState('address');
             }
             setIsLoading(false);
         }, 3000);
     };
+
+    const handleConfirmSent = () => {
+        setPurchaseState('pending');
+        toast({
+            title: 'Transaction Pending',
+            description: 'We are now awaiting confirmation on the blockchain. Your balance will be updated shortly.',
+        })
+    }
     
     const copyToClipboard = (text: string) => {
         navigator.clipboard.writeText(text);
@@ -178,8 +190,32 @@ function DirectBuyForm({ currentPrice }: { currentPrice: number | null }) {
         });
     };
 
+    const resetForm = () => {
+        setPurchaseState('form');
+        setAmount('');
+        setReceived('');
+        setDepositAddress('');
+    }
 
-    if (depositAddress) {
+    if (purchaseState === 'pending') {
+        return (
+             <Card>
+                <CardHeader>
+                    <div className="text-center font-medium">
+                        Deposit Pending
+                    </div>
+                </CardHeader>
+                <CardContent className="space-y-4 text-center">
+                    <Loader2 className="mx-auto h-12 w-12 animate-spin text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground">Your transaction is being confirmed on the network. This may take a few minutes.</p>
+                    <Button variant="outline" className="w-full" onClick={resetForm}>Make another purchase</Button>
+                </CardContent>
+            </Card>
+        )
+    }
+
+
+    if (purchaseState === 'address') {
         const selectedCoinInfo = COINS_WITH_ADDRESSES.find(c => c.id === coin);
         return (
             <Card>
@@ -196,7 +232,10 @@ function DirectBuyForm({ currentPrice }: { currentPrice: number | null }) {
                             <Copy className="h-4 w-4" />
                         </Button>
                     </div>
-                    <Button variant="outline" className="w-full" onClick={() => setDepositAddress('')}>Make another purchase</Button>
+                    <Button className="w-full" onClick={handleConfirmSent}>
+                        <Send className="mr-2 h-4 w-4" /> I have sent the funds
+                    </Button>
+                    <Button variant="outline" className="w-full" onClick={resetForm}>Cancel</Button>
                 </CardContent>
             </Card>
         )
