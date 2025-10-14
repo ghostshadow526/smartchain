@@ -22,11 +22,10 @@ export default function Home() {
 
       <section className="flex justify-center">
         <Image 
-          src="https://cdnb.artstation.com/p/assets/images/images/009/358/213/original/tony-twaine-comp-2-2.gif?1518528958"
+          src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRN_geO7ls_Xaw-q_hlswEhunkIRe2HHv1MXw&s"
           alt="Crypto Animation"
           width={800}
           height={450}
-          unoptimized={true}
           className="rounded-lg shadow-2xl"
         />
       </section>
