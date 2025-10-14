@@ -9,7 +9,6 @@ import { useAuth } from '@/context/AuthContext';
 import { updateUserDoc } from '@/lib/firebase';
 import { Card, CardContent } from './ui/card';
 import { Label } from './ui/label';
-import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import ImageKit from 'imagekit-javascript';
 
 interface UploadStatus {
@@ -18,8 +17,8 @@ interface UploadStatus {
   file?: File;
 }
 
-const publicKey = process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY || "public_FQMUi9HrOlfgLwAUQAJPcj+MmR0=";
-const urlEndpoint = process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT || "https://ik.imagekit.io/lwr4hqcxw";
+const publicKey = "public_FQMUi9HrOlfgLwAUQAJPcj+MmR0=";
+const urlEndpoint = "https://ik.imagekit.io/lwr4hqcxw";
 const authenticationEndpoint = '/api/auth/imagekit';
 
 export default function KYCForm({ onVerificationSubmit }: { onVerificationSubmit: () => void }) {
