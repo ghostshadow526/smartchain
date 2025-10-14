@@ -48,16 +48,24 @@ export default function DashboardPage() {
     async function fetchPrices() {
         try {
             const res = await fetch(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page=1&sparkline=false`);
+            if (!res.ok) {
+                throw new Error('Failed to fetch prices');
+            }
             const data: CoinDetails[] = await res.json();
             setAllCoins(data);
         } catch (error) {
             console.error("Failed to fetch prices", error);
+            toast({
+                title: 'Error Fetching Prices',
+                description: 'Could not load live cryptocurrency prices. Some data may be unavailable.',
+                variant: 'destructive'
+            })
         }
     }
     fetchPrices();
     const interval = setInterval(fetchPrices, 60000); // every minute
     return () => clearInterval(interval);
-  }, []);
+  }, [toast]);
 
   useEffect(() => {
     if (allCoins) {
