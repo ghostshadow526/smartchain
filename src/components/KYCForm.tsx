@@ -1,7 +1,7 @@
 'use client';
 
-// import { IKContext, IKUpload } from 'imagekit-react';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
+import { useDropzone } from 'react-dropzone';
 import { Button } from '@/components/ui/button';
 import { Loader2, CheckCircle, AlertCircle, UploadCloud } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -10,10 +10,12 @@ import { updateUserDoc } from '@/lib/firebase';
 import { Card, CardContent } from './ui/card';
 import { Label } from './ui/label';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
+import ImageKit from 'imagekit-javascript';
 
 interface UploadStatus {
   status: 'idle' | 'uploading' | 'success' | 'error';
   url?: string;
+  file?: File;
 }
 
 const publicKey = process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY || "public_FQMUi9HrOlfgLwAUQAJPcj+MmR0=";
@@ -28,22 +30,38 @@ export default function KYCForm({ onVerificationSubmit }: { onVerificationSubmit
   const [idBack, setIdBack] = useState<UploadStatus>({ status: 'idle' });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleUploadStart = (setter: React.Dispatch<React.SetStateAction<UploadStatus>>) => {
-    setter({ status: 'uploading' });
-  };
+  const imageKit = new ImageKit({
+    publicKey: publicKey,
+    urlEndpoint: urlEndpoint,
+  });
 
-  const handleUploadSuccess = (setter: React.Dispatch<React.SetStateAction<UploadStatus>>, res: any) => {
-    setter({ status: 'success', url: res.url });
-  };
+  const uploadFile = async (file: File, setter: React.Dispatch<React.SetStateAction<UploadStatus>>) => {
+    if (!user) return;
+    
+    setter({ status: 'uploading', file });
 
-  const handleUploadError = (setter: React.Dispatch<React.SetStateAction<UploadStatus>>, err: any) => {
-    console.error("Upload Error:", err);
-    setter({ status: 'error' });
-    toast({
-      title: 'Upload Failed',
-      description: 'There was an error uploading your file. Please try again.',
-      variant: 'destructive',
-    });
+    try {
+      const authRes = await fetch(authenticationEndpoint);
+      const authData = await authRes.json();
+
+      const response = await imageKit.upload({
+        file: file,
+        fileName: `kyc-${user.uid}-${file.name}`,
+        token: authData.token,
+        expire: authData.expire,
+        signature: authData.signature,
+      });
+
+      setter({ status: 'success', url: response.url, file });
+    } catch (error) {
+      console.error("Upload Error:", error);
+      setter({ status: 'error', file });
+      toast({
+        title: 'Upload Failed',
+        description: 'There was an error uploading your file. Please try again.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleSubmit = async () => {
@@ -59,14 +77,14 @@ export default function KYCForm({ onVerificationSubmit }: { onVerificationSubmit
     setIsSubmitting(true);
     try {
       if (user) {
-        await updateUserDoc(user.uid, { 
-            kycStatus: 'pending',
-            kycDocuments: {
-                selfie: selfie.url,
-                idFront: idFront.url,
-                idBack: idBack.url,
-                submittedAt: new Date().toISOString(),
-            }
+        await updateUserDoc(user.uid, {
+          kycStatus: 'pending',
+          kycDocuments: {
+            selfie: selfie.url,
+            idFront: idFront.url,
+            idBack: idBack.url,
+            submittedAt: new Date().toISOString(),
+          }
         });
 
         toast({
@@ -86,67 +104,70 @@ export default function KYCForm({ onVerificationSubmit }: { onVerificationSubmit
       setIsSubmitting(false);
     }
   };
-  
-  const Uploader = ({ title, onStart, onSuccess, onError, status }: { title: string, onStart: () => void, onSuccess: (res: any) => void, onError: (err: any) => void, status: UploadStatus }) => {
+
+  const Uploader = ({ title, onFileSelect, status }: { title: string, onFileSelect: (file: File) => void, status: UploadStatus }) => {
+    const onDrop = useCallback((acceptedFiles: File[]) => {
+      if (acceptedFiles.length > 0) {
+        onFileSelect(acceptedFiles[0]);
+      }
+    }, [onFileSelect]);
+
+    const { getRootProps, getInputProps, isDragActive } = useDropzone({
+      onDrop,
+      accept: { 'image/*': ['.jpeg', '.jpg', '.png'] },
+      multiple: false
+    });
+
     const getUploaderState = () => {
       switch (status.status) {
         case 'idle':
           return (
-            <>
-              <UploadCloud className="h-8 w-8 text-muted-foreground" />
-              <span className="text-xs text-muted-foreground">Click or drag to upload</span>
-            </>
+            <div className="text-center">
+              <UploadCloud className="h-8 w-8 text-muted-foreground mx-auto" />
+              <p className="text-xs text-muted-foreground">{isDragActive ? "Drop the file here..." : "Click or drag to upload"}</p>
+            </div>
           );
         case 'uploading':
           return <Loader2 className="h-8 w-8 animate-spin" />;
         case 'success':
-          return <CheckCircle className="h-8 w-8 text-green-500" />;
+          return (
+             <div className="text-center">
+                <CheckCircle className="h-8 w-8 text-green-500 mx-auto" />
+                <p className="text-xs text-muted-foreground truncate max-w-full px-2">{status.file?.name}</p>
+             </div>
+          );
         case 'error':
-          return <AlertCircle className="h-8 w-8 text-red-500" />;
+          return (
+             <div className="text-center">
+                <AlertCircle className="h-8 w-8 text-red-500 mx-auto" />
+                <p className="text-xs text-muted-foreground">Upload failed</p>
+             </div>
+            );
       }
     };
+
     return (
-       <div className="space-y-2">
-         <Label>{title}</Label>
-         <div className="relative flex justify-center items-center h-24 w-full border-2 border-dashed rounded-md">
-            {/* <IKUpload
-                fileName={`kyc-${user?.uid}-${title.toLowerCase().replace(' ', '-')}.jpg`}
-                onUploadStart={() => onStart()}
-                onSuccess={(res) => onSuccess(res)}
-                onError={(err) => onError(err)}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-            /> */}
-            {getUploaderState()}
-         </div>
-       </div>
+      <div className="space-y-2">
+        <Label>{title}</Label>
+        <div {...getRootProps()} className="relative flex justify-center items-center h-24 w-full border-2 border-dashed rounded-md cursor-pointer hover:border-primary transition-colors">
+          <input {...getInputProps()} />
+          {getUploaderState()}
+        </div>
+      </div>
     );
-  }
+  };
 
   return (
-    // <IKContext
-    //   publicKey={publicKey}
-    //   urlEndpoint={urlEndpoint}
-    //   authenticationEndpoint={authenticationEndpoint}
-    // >
-      <Card>
-        <CardContent className="space-y-6 pt-6">
-           <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Feature Unavailable</AlertTitle>
-            <AlertDescription>
-              KYC document upload is temporarily disabled. Please check back later.
-            </AlertDescription>
-          </Alert>
+    <Card>
+      <CardContent className="space-y-6 pt-6">
+        <Uploader title="Your Photo (Selfie)" onFileSelect={(file) => uploadFile(file, setSelfie)} status={selfie} />
+        <Uploader title="ID Front" onFileSelect={(file) => uploadFile(file, setIdFront)} status={idFront} />
+        <Uploader title="ID Back" onFileSelect={(file) => uploadFile(file, setIdBack)} status={idBack} />
 
-          {/* <Uploader title="Your Photo (Selfie)" onStart={() => handleUploadStart(setSelfie)} onSuccess={(res) => handleUploadSuccess(setSelfie, res)} onError={(err) => handleUploadError(setSelfie, err)} status={selfie} />
-          <Uploader title="ID Front" onStart={() => handleUploadStart(setIdFront)} onSuccess={(res) => handleUploadSuccess(setIdFront, res)} onError={(err) => handleUploadError(setIdFront, err)} status={idFront} />
-          <Uploader title="ID Back" onStart={() => handleUploadStart(idBack)} onSuccess={(res) => handleUploadSuccess(idBack, res)} onError={(err) => handleUploadError(idBack, err)} status={idBack} /> */}
-
-          <Button onClick={handleSubmit} disabled={true} className="w-full">
-            {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Submit for Verification'}
-          </Button>
-        </CardContent>
-      </Card>
-    // </IKContext>
+        <Button onClick={handleSubmit} disabled={isSubmitting || selfie.status !== 'success' || idFront.status !== 'success' || idBack.status !== 'success'} className="w-full">
+          {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Submit for Verification'}
+        </Button>
+      </CardContent>
+    </Card>
   );
 }
