@@ -13,9 +13,9 @@ import { useToast } from '@/hooks/use-toast';
 import { Copy, Loader2, ShieldCheck, ShieldAlert } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import type { CryptoPriceResponse } from '@/lib/types';
+import type { CoinDetails } from '@/lib/types';
 import KYCForm from '@/components/KYCForm';
-
+import Image from 'next/image';
 
 const COINS_WITH_ADDRESSES = [
   { id: 'bitcoin', name: 'Bitcoin', symbol: 'BTC', address: 'bc1qlactml4p0rqkma460hufayumpd39s79pexskdd' },
@@ -30,7 +30,7 @@ export default function DashboardPage() {
   const { user, userData, loading } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
-  const [prices, setPrices] = useState<CryptoPriceResponse | null>(null);
+  const [coinDetails, setCoinDetails] = useState<CoinDetails[] | null>(null);
 
   const [selectedCoin, setSelectedCoin] = useState('');
   const [isDepositing, setIsDepositing] = useState(false);
@@ -47,9 +47,9 @@ export default function DashboardPage() {
   useEffect(() => {
     async function fetchPrices() {
         try {
-            const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ALL_COINS}&vs_currencies=usd`);
-            const data: CryptoPriceResponse = await res.json();
-            setPrices(data);
+            const res = await fetch(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${ALL_COINS}`);
+            const data: CoinDetails[] = await res.json();
+            setCoinDetails(data);
         } catch (error) {
             console.error("Failed to fetch prices", error);
             // Don't show a toast for this, as it might be too noisy
@@ -102,17 +102,21 @@ export default function DashboardPage() {
   }
   
   const getPortfolioWithPrices = () => {
-      if (!userData?.portfolio || !prices) return [];
-      return userData.portfolio.map((coin: any) => ({
-          ...coin,
-          price: prices[coin.id]?.usd || 0,
-      }));
+      if (!userData?.portfolio || !coinDetails) return [];
+      return userData.portfolio.map((coin: any) => {
+          const details = coinDetails.find(c => c.id === coin.id);
+          return {
+              ...coin,
+              price: details?.current_price || 0,
+              image: details?.image,
+          }
+      });
   }
 
   const portfolioWithPrices = getPortfolioWithPrices();
   const portfolioTotal = portfolioWithPrices.reduce((acc: number, coin: any) => acc + (coin.amount * coin.price), 0);
 
-  const getCoinPrice = (coinId: string) => prices?.[coinId]?.usd || 0;
+  const getCoinDetails = (coinId: string) => coinDetails?.find(c => c.id === coinId);
 
   const KycStatus = () => {
     switch (userData.kycStatus) {
@@ -225,7 +229,6 @@ export default function DashboardPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Asset</TableHead>
-                <TableHead>Symbol</TableHead>
                 <TableHead>Current Price</TableHead>
                 <TableHead>Balance</TableHead>
                 <TableHead className="text-right">Value (USD)</TableHead>
@@ -235,9 +238,14 @@ export default function DashboardPage() {
               {(portfolioWithPrices && portfolioWithPrices.length > 0) ? (
                 portfolioWithPrices.map((coin: any) => (
                   <TableRow key={coin.id}>
-                    <TableCell className="font-medium">{coin.name}</TableCell>
-                    <TableCell>
-                      <Badge variant="secondary">{coin.symbol.toUpperCase()}</Badge>
+                    <TableCell className="font-medium">
+                        <div className="flex items-center gap-2">
+                           {coin.image && <Image src={coin.image} alt={coin.name} width={24} height={24} />}
+                            <div>
+                                <div>{coin.name}</div>
+                                <div className="text-xs text-muted-foreground">{coin.symbol.toUpperCase()}</div>
+                            </div>
+                        </div>
                     </TableCell>
                     <TableCell>${(coin.price || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
                     <TableCell>{coin.amount.toFixed(6)}</TableCell>
@@ -245,16 +253,19 @@ export default function DashboardPage() {
                   </TableRow>
                 ))
               ) : (
-                ALL_COINS.split(',').map(coinId => {
-                    const coinInfo = { id: coinId, name: coinId.charAt(0).toUpperCase() + coinId.slice(1), symbol: coinId.toUpperCase() };
-                    const price = getCoinPrice(coinId);
+                coinDetails && coinDetails.map(coin => {
                     return (
-                        <TableRow key={coinInfo.id}>
-                            <TableCell className="font-medium">{coinInfo.name}</TableCell>
-                            <TableCell>
-                               <Badge variant="secondary">{coinInfo.symbol}</Badge>
+                        <TableRow key={coin.id}>
+                            <TableCell className="font-medium">
+                                <div className="flex items-center gap-2">
+                                   {coin.image && <Image src={coin.image} alt={coin.name} width={24} height={24} />}
+                                    <div>
+                                        <div>{coin.name}</div>
+                                        <div className="text-xs text-muted-foreground">{coin.symbol.toUpperCase()}</div>
+                                    </div>
+                                </div>
                             </TableCell>
-                             <TableCell>${price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
+                             <TableCell>${coin.current_price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
                             <TableCell>0.000000</TableCell>
                             <TableCell className="text-right">$0.00</TableCell>
                         </TableRow>

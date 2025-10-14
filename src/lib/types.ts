@@ -1,6 +1,8 @@
 export interface CryptoPriceResponse {
   [coin: string]: {
     usd: number;
+    usd_24h_change: number;
+    image?: string; 
   };
 }
 
@@ -29,4 +31,13 @@ export interface P2POffer {
     price: number;
     paymentMethods: string[];
     country: string;
+}
+
+export interface CoinDetails {
+    id: string;
+    symbol: string;
+    name: string;
+    image: string;
+    current_price: number;
+    price_change_percentage_24h: number;
 }
