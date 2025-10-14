@@ -207,7 +207,7 @@ export default function DashboardPage() {
                           <Button className="w-full">Start KYC Verification</Button>
                       </DialogTrigger>
                       <DialogContent className="sm:max-w-lg">
-                          <DialogHeader>
+                           <DialogHeader>
                             <DialogTitle>KYC Verification</DialogTitle>
                             <DialogDescription>Upload the required documents to verify your identity. This will help secure your account.</DialogDescription>
                           </DialogHeader>

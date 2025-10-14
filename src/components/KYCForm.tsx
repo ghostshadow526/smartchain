@@ -7,7 +7,7 @@ import { Loader2, CheckCircle, AlertCircle, UploadCloud } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import { updateUserDoc } from '@/lib/firebase';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { Card, CardContent } from './ui/card';
 import { Label } from './ui/label';
 
 interface UploadStatus {
@@ -86,7 +86,7 @@ export default function KYCForm({ onVerificationSubmit }: { onVerificationSubmit
     }
   };
   
-  const Uploader = ({ title, onStart, onSuccess, onError, status }: { title: string, onStart: () => void, onSuccess: (res: any) => void, onError: (err: any) => void, status: UploadStatus }) => {
+  const Uploader = ({ title, status }: { title: string, onStart: () => void, onSuccess: (res: any) => void, onError: (err: any) => void, status: UploadStatus }) => {
     const getUploaderState = () => {
       switch (status.status) {
         case 'idle':
@@ -115,7 +115,8 @@ export default function KYCForm({ onVerificationSubmit }: { onVerificationSubmit
                 onError={(err) => onError(err)}
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
             /> */}
-            {getUploaderState()}
+            <p className="text-sm text-muted-foreground p-4 text-center">Image upload is currently disabled. Please contact support.</p>
+            {/* {getUploaderState()} */}
          </div>
        </div>
     );
@@ -128,16 +129,12 @@ export default function KYCForm({ onVerificationSubmit }: { onVerificationSubmit
     //   authenticationEndpoint={authenticationEndpoint}
     // >
       <Card>
-        <CardHeader>
-          <CardTitle>KYC Verification</CardTitle>
-          <CardDescription>Upload the required documents to verify your identity. This will help secure your account. (Feature currently disabled)</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-6 pt-6">
           <Uploader title="Your Photo (Selfie)" onStart={() => handleUploadStart(setSelfie)} onSuccess={(res) => handleUploadSuccess(setSelfie, res)} onError={(err) => handleUploadError(setSelfie, err)} status={selfie} />
           <Uploader title="ID Front" onStart={() => handleUploadStart(setIdFront)} onSuccess={(res) => handleUploadSuccess(setIdFront, res)} onError={(err) => handleUploadError(setIdFront, err)} status={idFront} />
-          <Uploader title="ID Back" onStart={() => handleUploadStart(setIdBack)} onSuccess={(res) => handleUploadSuccess(idBack, res)} onError={(err) => handleUploadError(idBack, err)} status={idBack} />
+          <Uploader title="ID Back" onStart={() => handleUploadStart(idBack)} onSuccess={(res) => handleUploadSuccess(idBack, res)} onError={(err) => handleUploadError(idBack, err)} status={idBack} />
 
-          <Button onClick={handleSubmit} disabled={true || isSubmitting || selfie.status !== 'success' || idFront.status !== 'success' || idBack.status !== 'success'} className="w-full">
+          <Button onClick={handleSubmit} disabled={isSubmitting || selfie.status !== 'success' || idFront.status !== 'success' || idBack.status !== 'success'} className="w-full">
             {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Submit for Verification'}
           </Button>
         </CardContent>
