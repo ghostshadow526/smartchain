@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -22,7 +22,7 @@ const COINS_WITH_ADDRESSES = [
   { id: 'tether', name: 'USDT', symbol: 'USDT', address: '0x494Cc65Cc3aB9C246511B5A3360d6745Afb36fef' },
 ];
 
-function OrderForm({ type, price, coinId, user }: { type: 'buy' | 'sell', price: number | null, user: any }) {
+function OrderForm({ type, price, coinId, user }: { type: 'buy' | 'sell', price: number | null, coinId: string, user: any }) {
   const { toast } = useToast();
   const buttonColor = type === 'buy' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700';
   const [amount, setAmount] = useState('');
@@ -71,7 +71,7 @@ function OrderForm({ type, price, coinId, user }: { type: 'buy' | 'sell', price:
         if (!numericTotal || numericTotal <= 0 || numericTotal > balance) {
             toast({
               title: "Insufficient USD Balance",
-              description: `You do not have enough USD to complete this purchase. Your balance is $${balance.toLocaleString()}.`,
+              description: `You do not have enough USD to complete this purchase. Your balance is $${balance?.toLocaleString() || 0}.`,
               variant: "destructive",
             });
             return;
@@ -141,13 +141,19 @@ function OrderForm({ type, price, coinId, user }: { type: 'buy' | 'sell', price:
   );
 }
 
-function DirectBuyForm({ currentPrice }: { currentPrice: number | null }) {
+type PurchaseState = 'form' | 'address' | 'pending';
+
+function DirectBuyForm({ currentPrice, purchaseState, setPurchaseState, depositAddress, setDepositAddress }: { 
+    currentPrice: number | null,
+    purchaseState: PurchaseState,
+    setPurchaseState: (state: PurchaseState) => void,
+    depositAddress: string,
+    setDepositAddress: (address: string) => void
+}) {
     const [amount, setAmount] = useState('');
     const [coin, setCoin] = useState('bitcoin');
     const [received, setReceived] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const [depositAddress, setDepositAddress] = useState('');
-    const [purchaseState, setPurchaseState] = useState<'form' | 'address' | 'pending'>('form');
     const { toast } = useToast();
 
     useEffect(() => {
@@ -157,10 +163,15 @@ function DirectBuyForm({ currentPrice }: { currentPrice: number | null }) {
         } else {
             setReceived('');
         }
-        // Reset state if coin changes
-        setPurchaseState('form');
-        setDepositAddress('');
-    }, [amount, currentPrice, coin]);
+    }, [amount, currentPrice]);
+
+    useEffect(() => {
+        // Reset local state if global state is reset
+        if (purchaseState === 'form') {
+            setAmount('');
+            setReceived('');
+        }
+    }, [purchaseState])
     
     const handleBuy = () => {
         setIsLoading(true);
@@ -192,8 +203,6 @@ function DirectBuyForm({ currentPrice }: { currentPrice: number | null }) {
 
     const resetForm = () => {
         setPurchaseState('form');
-        setAmount('');
-        setReceived('');
         setDepositAddress('');
     }
 
@@ -273,6 +282,9 @@ function DirectBuyForm({ currentPrice }: { currentPrice: number | null }) {
 }
 
 export default function BuySellForm({ currentPrice, coinId, user }: BuySellFormProps) {
+  const [purchaseState, setPurchaseState] = useState<PurchaseState>('form');
+  const [depositAddress, setDepositAddress] = useState('');
+
   return (
     <Card>
       <CardContent className="p-4">
@@ -296,10 +308,18 @@ export default function BuySellForm({ currentPrice, coinId, user }: BuySellFormP
             </Tabs>
           </TabsContent>
           <TabsContent value="direct-buy">
-            <DirectBuyForm currentPrice={currentPrice} />
+            <DirectBuyForm 
+                currentPrice={currentPrice}
+                purchaseState={purchaseState}
+                setPurchaseState={setPurchaseState}
+                depositAddress={depositAddress}
+                setDepositAddress={setDepositAddress}
+             />
           </TabsContent>
         </Tabs>
       </CardContent>
     </Card>
   );
 }
+
+    
