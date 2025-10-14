@@ -39,6 +39,12 @@ const nextConfig: NextConfig = {
         hostname: 'coin-images.coingecko.com',
         port: '',
         pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'cdnb.artstation.com',
+        port: '',
+        pathname: '/**',
       }
     ],
   },

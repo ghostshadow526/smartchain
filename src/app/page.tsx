@@ -1,10 +1,11 @@
 import { Button } from '@/components/ui/button';
 import LivePrices from '@/components/LivePrices';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function Home() {
   return (
-    <div className="space-y-24 py-16">
+    <div className="space-y-16 py-16">
       <header className="text-center space-y-4">
         <h1 className="text-5xl md:text-7xl font-bold tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-neutral-50 to-neutral-400">
           ECNFOUNDATION
@@ -18,6 +19,17 @@ export default function Home() {
           </Button>
         </div>
       </header>
+
+      <section className="flex justify-center">
+        <Image 
+          src="https://cdnb.artstation.com/p/assets/images/images/009/358/213/original/tony-twaine-comp-2-2.gif?1518528958"
+          alt="Crypto Animation"
+          width={800}
+          height={450}
+          unoptimized={true}
+          className="rounded-lg shadow-2xl"
+        />
+      </section>
 
       <section className="max-w-3xl mx-auto text-center space-y-4">
         <h2 className="text-3xl font-bold">About Our Platform</h2>

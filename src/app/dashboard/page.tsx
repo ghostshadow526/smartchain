@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { Copy, Loader2, ShieldCheck, ShieldAlert } from 'lucide-react';
+import { Copy, Loader2, ShieldCheck, ShieldAlert, ArrowUp, ArrowDown } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { CoinDetails } from '@/lib/types';
@@ -23,19 +23,19 @@ const COINS_WITH_ADDRESSES = [
   { id: 'tether', name: 'USDT', symbol: 'USDT', address: '0x494Cc65Cc3aB9C246511B5A3360d6745Afb36fef' },
 ];
 
-const ALL_COINS = 'bitcoin,ethereum,tether,dogecoin,cardano,solana,ripple,polkadot,chainlink,litecoin';
-
-
 export default function DashboardPage() {
   const { user, userData, loading } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
-  const [coinDetails, setCoinDetails] = useState<CoinDetails[] | null>(null);
+  const [allCoins, setAllCoins] = useState<CoinDetails[] | null>(null);
+  const [filteredCoins, setFilteredCoins] = useState<CoinDetails[] | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const [selectedCoin, setSelectedCoin] = useState('');
   const [isDepositing, setIsDepositing] = useState(false);
   const [depositAddress, setDepositAddress] = useState('');
   const [isKycDialogOpen, setIsKycDialogOpen] = useState(false);
+  const [isWithdrawDialogOpen, setIsWithdrawDialogOpen] = useState(false);
 
 
   useEffect(() => {
@@ -47,18 +47,28 @@ export default function DashboardPage() {
   useEffect(() => {
     async function fetchPrices() {
         try {
-            const res = await fetch(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${ALL_COINS}`);
+            const res = await fetch(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page=1&sparkline=false`);
             const data: CoinDetails[] = await res.json();
-            setCoinDetails(data);
+            setAllCoins(data);
         } catch (error) {
             console.error("Failed to fetch prices", error);
-            // Don't show a toast for this, as it might be too noisy
         }
     }
     fetchPrices();
     const interval = setInterval(fetchPrices, 60000); // every minute
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    if (allCoins) {
+        const results = allCoins.filter(coin => 
+            coin.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+            coin.symbol.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+        setFilteredCoins(results);
+    }
+  }, [searchTerm, allCoins]);
+
 
   const handleDeposit = () => {
     if (!selectedCoin) {
@@ -76,8 +86,26 @@ export default function DashboardPage() {
             setDepositAddress(coinData.address);
         }
         setIsDepositing(false);
-    }, 3000);
+    }, 1000);
   };
+  
+  const handleWithdraw = () => {
+      // Basic check, more complex logic with gas fees would be needed
+      const totalBalance = getPortfolioTotal();
+      if(totalBalance <= 0) {
+          toast({
+              title: "Withdrawal Error",
+              description: "You have no balance to withdraw.",
+              variant: "destructive"
+          })
+          return;
+      }
+      toast({
+          title: "Withdrawal Successful",
+          description: "Your withdrawal request is being processed. This is a mock action."
+      })
+      setIsWithdrawDialogOpen(false);
+  }
 
   const copyToClipboard = (text: string, coin: string) => {
     navigator.clipboard.writeText(text);
@@ -96,27 +124,33 @@ export default function DashboardPage() {
           <Skeleton className="h-32 w-full" />
           <Skeleton className="h-32 w-full" />
         </div>
-        <Skeleton className="h-64 w-full" />
+        <Skeleton className="h-96 w-full" />
       </div>
     );
   }
   
   const getPortfolioWithPrices = () => {
-      if (!userData?.portfolio || !coinDetails) return [];
+      if (!userData?.portfolio || !allCoins) return [];
       return userData.portfolio.map((coin: any) => {
-          const details = coinDetails.find(c => c.id === coin.id);
+          const details = allCoins.find(c => c.id === coin.id);
           return {
               ...coin,
+              ...details,
               price: details?.current_price || 0,
-              image: details?.image,
           }
       });
   }
 
-  const portfolioWithPrices = getPortfolioWithPrices();
-  const portfolioTotal = portfolioWithPrices.reduce((acc: number, coin: any) => acc + (coin.amount * coin.price), 0);
+  const getPortfolioTotal = () => {
+      if (!userData?.portfolio || !allCoins) return 0;
+      const portfolioWithPrices = getPortfolioWithPrices();
+      return portfolioWithPrices.reduce((acc: number, coin: any) => acc + (coin.amount * coin.price), 0);
+  }
 
-  const getCoinDetails = (coinId: string) => coinDetails?.find(c => c.id === coinId);
+  const portfolioTotal = getPortfolioTotal();
+  const portfolioWithPrices = getPortfolioWithPrices();
+  const coinsToDisplay = filteredCoins || allCoins;
+
 
   const KycStatus = () => {
     switch (userData.kycStatus) {
@@ -136,49 +170,70 @@ export default function DashboardPage() {
           <h1 className="text-3xl font-bold">Welcome, {userData.username}</h1>
           <p className="text-muted-foreground">Here's your crypto dashboard overview.</p>
         </div>
-        <Dialog onOpenChange={(open) => { if(!open) { setSelectedCoin(''); setDepositAddress(''); }}}>
-          <DialogTrigger asChild>
-            <Button>Buy Crypto</Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>Deposit Crypto</DialogTitle>
-              <DialogDescription>
-                You can deposit any crypto of your choice and convert to the one you want to trade.
-              </DialogDescription>
-            </DialogHeader>
-             {!depositAddress ? (
-                <div className="space-y-4 py-4">
-                    <Select onValueChange={setSelectedCoin} value={selectedCoin}>
-                        <SelectTrigger>
-                            <SelectValue placeholder="Select crypto to deposit" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {COINS_WITH_ADDRESSES.map(c => <SelectItem key={c.id} value={c.id}>{c.name} ({c.symbol})</SelectItem>)}
-                        </SelectContent>
-                    </Select>
-                    <Button onClick={handleDeposit} disabled={isDepositing || !selectedCoin} className="w-full">
-                        {isDepositing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        Get Deposit Address
-                    </Button>
-                </div>
-            ) : (
-                <Card className="mt-4 bg-card">
-                    <CardContent className="p-4 space-y-3">
-                        <div className="text-center font-medium">
-                           Deposit {COINS_WITH_ADDRESSES.find(c => c.id === selectedCoin)?.name} Address
-                        </div>
-                         <div className="flex items-center space-x-2">
-                            <Input readOnly value={depositAddress} className="truncate text-xs" />
-                            <Button variant="outline" size="icon" onClick={() => copyToClipboard(depositAddress, COINS_WITH_ADDRESSES.find(c => c.id === selectedCoin)?.name || '')}>
-                                <Copy className="h-4 w-4" />
-                            </Button>
-                        </div>
-                    </CardContent>
-                </Card>
-            )}
-          </DialogContent>
-        </Dialog>
+        <div className="flex gap-2">
+            <Dialog onOpenChange={(open) => { if(!open) { setSelectedCoin(''); setDepositAddress(''); }}}>
+              <DialogTrigger asChild>
+                <Button>Deposit</Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Deposit Crypto</DialogTitle>
+                  <DialogDescription>
+                    Select a currency to see your deposit address.
+                  </DialogDescription>
+                </DialogHeader>
+                 {!depositAddress ? (
+                    <div className="space-y-4 py-4">
+                        <Select onValueChange={setSelectedCoin} value={selectedCoin}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select crypto to deposit" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {COINS_WITH_ADDRESSES.map(c => <SelectItem key={c.id} value={c.id}>{c.name} ({c.symbol})</SelectItem>)}
+                            </SelectContent>
+                        </Select>
+                        <Button onClick={handleDeposit} disabled={isDepositing || !selectedCoin} className="w-full">
+                            {isDepositing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Get Deposit Address
+                        </Button>
+                    </div>
+                ) : (
+                    <Card className="mt-4 bg-card">
+                        <CardContent className="p-4 space-y-3">
+                            <div className="text-center font-medium">
+                               Deposit {COINS_WITH_ADDRESSES.find(c => c.id === selectedCoin)?.name} Address
+                            </div>
+                             <div className="flex items-center space-x-2">
+                                <Input readOnly value={depositAddress} className="truncate text-xs" />
+                                <Button variant="outline" size="icon" onClick={() => copyToClipboard(depositAddress, COINS_WITH_ADDRESSES.find(c => c.id === selectedCoin)?.name || '')}>
+                                    <Copy className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
+              </DialogContent>
+            </Dialog>
+
+             <Dialog open={isWithdrawDialogOpen} onOpenChange={setIsWithdrawDialogOpen}>
+                <DialogTrigger asChild>
+                    <Button variant="outline">Withdraw</Button>
+                </DialogTrigger>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Withdraw Funds</DialogTitle>
+                        <DialogDescription>Enter the amount and destination for your withdrawal. Gas fees will be calculated and deducted.</DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                        <p className="text-sm">Your total balance is <strong>${portfolioTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></p>
+                        <Input placeholder="Amount to withdraw" type="number" />
+                        <Input placeholder="Withdrawal Address" />
+                         <p className="text-xs text-muted-foreground">Estimated Gas Fee: 0.001 ETH ($3.50)</p>
+                        <Button onClick={handleWithdraw} className="w-full">Confirm Withdrawal</Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
+        </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-[1fr_350px]">
@@ -222,11 +277,17 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-
       <Card>
         <CardHeader>
-          <CardTitle>Your Crypto Assets</CardTitle>
-          <CardDescription>A list of cryptocurrencies in your portfolio.</CardDescription>
+          <CardTitle>Crypto Assets</CardTitle>
+          <CardDescription>Browse and manage all available cryptocurrencies.</CardDescription>
+           <div className="pt-4">
+            <Input 
+                placeholder="Search crypto..." 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+            />
+           </div>
         </CardHeader>
         <CardContent>
           <Table>
@@ -234,30 +295,20 @@ export default function DashboardPage() {
               <TableRow>
                 <TableHead>Asset</TableHead>
                 <TableHead>Current Price</TableHead>
-                <TableHead>Balance</TableHead>
+                <TableHead>24h Change</TableHead>
+                <TableHead>Your Balance</TableHead>
                 <TableHead className="text-right">Value (USD)</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {(portfolioWithPrices && portfolioWithPrices.length > 0) ? (
-                portfolioWithPrices.map((coin: any) => (
-                  <TableRow key={coin.id}>
-                    <TableCell className="font-medium">
-                        <div className="flex items-center gap-2">
-                           {coin.image && <Image src={coin.image} alt={coin.name} width={24} height={24} />}
-                            <div>
-                                <div>{coin.name}</div>
-                                <div className="text-xs text-muted-foreground">{coin.symbol.toUpperCase()}</div>
-                            </div>
-                        </div>
-                    </TableCell>
-                    <TableCell>${(coin.price || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
-                    <TableCell>{coin.amount.toFixed(6)}</TableCell>
-                    <TableCell className="text-right">${(coin.amount * coin.price).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                coinDetails && coinDetails.map(coin => {
+              {(coinsToDisplay && coinsToDisplay.length > 0) ? (
+                coinsToDisplay.map((coin) => {
+                    const userCoin = portfolioWithPrices.find(p => p.id === coin.id);
+                    const balance = userCoin ? userCoin.amount : 0;
+                    const value = userCoin ? userCoin.amount * coin.current_price : 0;
+                    const priceChange = coin.price_change_percentage_24h;
+
                     return (
                         <TableRow key={coin.id}>
                             <TableCell className="font-medium">
@@ -269,12 +320,27 @@ export default function DashboardPage() {
                                     </div>
                                 </div>
                             </TableCell>
-                             <TableCell>${coin.current_price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
-                            <TableCell>0.000000</TableCell>
-                            <TableCell className="text-right">$0.00</TableCell>
+                            <TableCell>${coin.current_price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 8 })}</TableCell>
+                            <TableCell className={priceChange > 0 ? 'text-green-500' : 'text-red-500'}>
+                                <div className="flex items-center gap-1">
+                                    {priceChange > 0 ? <ArrowUp size={14} /> : <ArrowDown size={14} />}
+                                    {priceChange.toFixed(2)}%
+                                </div>
+                            </TableCell>
+                            <TableCell>{balance.toFixed(6)}</TableCell>
+                            <TableCell className="text-right">${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
+                            <TableCell className="text-right">
+                                <Button size="sm" onClick={() => router.push(`/trade?coin=${coin.id}`)}>Buy</Button>
+                            </TableCell>
                         </TableRow>
                     )
                 })
+              ) : (
+                <TableRow>
+                    <TableCell colSpan={6} className="text-center h-24">
+                        {loading ? 'Loading coins...' : 'No coins found.'}
+                    </TableCell>
+                </TableRow>
               )}
             </TableBody>
           </Table>

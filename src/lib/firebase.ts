@@ -72,6 +72,7 @@ export async function ensureUserDoc(uid: string, data: { username: string }) {
         createdAt: new Date().toISOString(), 
         portfolio: [],
         kycStatus: 'not-started',
+        balance: 0.00,
     });
   }
 }
