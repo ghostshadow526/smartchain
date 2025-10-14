@@ -45,6 +45,12 @@ const nextConfig: NextConfig = {
         hostname: 'cdnb.artstation.com',
         port: '',
         pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'png.pngtree.com',
+        port: '',
+        pathname: '/**',
       }
     ],
   },

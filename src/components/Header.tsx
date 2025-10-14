@@ -1,11 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import { Banknote, LayoutDashboard } from 'lucide-react';
+import { LayoutDashboard } from 'lucide-react';
 import { Button } from './ui/button';
 import { useAuth } from '@/context/AuthContext';
 import { signOutUser } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 export default function Header() {
   const { user, userData, loading } = useAuth();
@@ -20,7 +21,7 @@ export default function Header() {
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 items-center">
         <Link href="/" className="flex items-center gap-2 mr-6">
-          <Banknote className="h-6 w-6" />
+          <Image src="https://png.pngtree.com/png-vector/20220525/ourmid/pngtree-bmttoken-crypto-icon-png-image_4721142.png" alt="ECNFOUNDATION Logo" width={24} height={24} />
           <span className="font-bold">ECNFOUNDATION</span>
         </Link>
         <nav className="flex items-center gap-6 text-sm">
