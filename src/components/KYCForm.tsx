@@ -33,6 +33,7 @@ export default function KYCForm({ onVerificationSubmit }: { onVerificationSubmit
   const imageKit = new ImageKit({
     publicKey: publicKey,
     urlEndpoint: urlEndpoint,
+    authenticationEndpoint: authenticationEndpoint
   });
 
   const uploadFile = async (file: File, setter: React.Dispatch<React.SetStateAction<UploadStatus>>) => {
@@ -41,25 +42,9 @@ export default function KYCForm({ onVerificationSubmit }: { onVerificationSubmit
     setter({ status: 'uploading', file });
 
     try {
-      const authRes = await fetch(authenticationEndpoint);
-      
-      if (!authRes.ok) {
-        const errorText = await authRes.text();
-        throw new Error(`Failed to authenticate with ImageKit: ${authRes.status} ${authRes.statusText} - ${errorText}`);
-      }
-      
-      const authData = await authRes.json();
-
-      if (!authData.token || !authData.expire || !authData.signature) {
-        throw new Error("Invalid authentication parameters received from server.");
-      }
-
       const response = await imageKit.upload({
         file: file,
         fileName: `kyc-${user.uid}-${file.name}`,
-        token: authData.token,
-        expire: authData.expire,
-        signature: authData.signature,
       });
 
       setter({ status: 'success', url: response.url, file });
