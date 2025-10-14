@@ -141,8 +141,10 @@ export default function TradePage() {
             <TabsTrigger value="history">History</TabsTrigger>
           </TabsList>
           <TabsContent value="chart">
-            <Card className="h-[400px]">
-              <TradingChart coinId={currentPair} />
+            <Card>
+                <div className="h-[400px] w-full">
+                    <TradingChart coinId={currentPair} />
+                </div>
             </Card>
           </TabsContent>
           <TabsContent value="trade">
