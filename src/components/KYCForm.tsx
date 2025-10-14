@@ -15,9 +15,9 @@ interface UploadStatus {
   url?: string;
 }
 
-// const publicKey = process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY || "public_FQMUi9HrOlfgLwAUQAJPcj+MmR0=";
-// const urlEndpoint = process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT || "https://ik.imagekit.io/lwr4hqcxw";
-// const authenticationEndpoint = '/api/auth/imagekit';
+const publicKey = process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY || "public_FQMUi9HrOlfgLwAUQAJPcj+MmR0=";
+const urlEndpoint = process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT || "https://ik.imagekit.io/lwr4hqcxw";
+const authenticationEndpoint = '/api/auth/imagekit';
 
 export default function KYCForm({ onVerificationSubmit }: { onVerificationSubmit: () => void }) {
   const { user } = useAuth();
@@ -86,7 +86,7 @@ export default function KYCForm({ onVerificationSubmit }: { onVerificationSubmit
     }
   };
   
-  const Uploader = ({ title, status }: { title: string, onStart: () => void, onSuccess: (res: any) => void, onError: (err: any) => void, status: UploadStatus }) => {
+  const Uploader = ({ title, onStart, onSuccess, onError, status }: { title: string, onStart: () => void, onSuccess: (res: any) => void, onError: (err: any) => void, status: UploadStatus }) => {
     const getUploaderState = () => {
       switch (status.status) {
         case 'idle':
@@ -108,15 +108,15 @@ export default function KYCForm({ onVerificationSubmit }: { onVerificationSubmit
        <div className="space-y-2">
          <Label>{title}</Label>
          <div className="relative flex justify-center items-center h-24 w-full border-2 border-dashed rounded-md">
-            {/* <IKUpload
+            {/*<IKUpload
                 fileName={`kyc-${user?.uid}-${title.toLowerCase().replace(' ', '-')}.jpg`}
                 onUploadStart={() => onStart()}
                 onSuccess={(res) => onSuccess(res)}
                 onError={(err) => onError(err)}
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-            /> */}
-            <p className="text-sm text-muted-foreground p-4 text-center">Image upload is currently disabled. Please contact support.</p>
-            {/* {getUploaderState()} */}
+            />*/}
+            <p className="text-xs text-muted-foreground">Upload disabled</p>
+            {/*getUploaderState()*/}
          </div>
        </div>
     );

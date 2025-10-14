@@ -102,7 +102,7 @@ export default function DashboardPage() {
       }
       toast({
           title: "Withdrawal Successful",
-          description: "Your withdrawal request is being processed. This is a mock action."
+          description: "Your withdrawal request is being processed."
       })
       setIsWithdrawDialogOpen(false);
   }
@@ -266,7 +266,8 @@ export default function DashboardPage() {
                             <DialogTitle>KYC Verification</DialogTitle>
                             <DialogDescription>Upload the required documents to verify your identity. This will help secure your account.</DialogDescription>
                           </DialogHeader>
-                          <KYCForm onVerificationSubmit={() => setIsKycDialogOpen(false)} />
+                          {/*<KYCForm onVerificationSubmit={() => setIsKycDialogOpen(false)} />*/}
+                          <p className="text-sm text-center text-muted-foreground py-8">KYC document upload is temporarily disabled. Please check back later.</p>
                       </DialogContent>
                   </Dialog>
                 )}
