@@ -22,11 +22,12 @@ export default function Home() {
 
       <section className="flex justify-center">
         <Image 
-          src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRN_geO7ls_Xaw-q_hlswEhunkIRe2HHv1MXw&s"
+          src="https://mir-s3-cdn-cf.behance.net/project_modules/hd/530d19128171271.6153059aec31a.gif"
           alt="Crypto Animation"
           width={800}
           height={450}
           className="rounded-lg shadow-2xl"
+          unoptimized
         />
       </section>
 
