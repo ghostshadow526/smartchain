@@ -3,23 +3,17 @@
 import { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Button } from '@/components/ui/button';
-import { Loader2, CheckCircle, AlertCircle, UploadCloud } from 'lucide-react';
+import { Loader2, CheckCircle, UploadCloud } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import { updateUserDoc } from '@/lib/firebase';
 import { Card, CardContent } from './ui/card';
 import { Label } from './ui/label';
-import ImageKit from 'imagekit-javascript';
 
 interface UploadStatus {
-  status: 'idle' | 'uploading' | 'success' | 'error';
-  url?: string;
+  status: 'idle' | 'success';
   file?: File;
 }
-
-const publicKey = "public_FQMUi9HrOlfgLwAUQAJPcj+MmR0=";
-const urlEndpoint = "https://ik.imagekit.io/lwr4hqcxw";
-const authenticationEndpoint = '/api/auth/imagekit';
 
 export default function KYCForm({ onVerificationSubmit }: { onVerificationSubmit: () => void }) {
   const { user } = useAuth();
@@ -29,40 +23,15 @@ export default function KYCForm({ onVerificationSubmit }: { onVerificationSubmit
   const [idBack, setIdBack] = useState<UploadStatus>({ status: 'idle' });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const imageKit = new ImageKit({
-    publicKey: publicKey,
-    urlEndpoint: urlEndpoint,
-    authenticationEndpoint: authenticationEndpoint
-  });
-
-  const uploadFile = async (file: File, setter: React.Dispatch<React.SetStateAction<UploadStatus>>) => {
-    if (!user) return;
-    
-    setter({ status: 'uploading', file });
-
-    try {
-      const response = await imageKit.upload({
-        file: file,
-        fileName: `kyc-${user.uid}-${file.name}`,
-      });
-
-      setter({ status: 'success', url: response.url, file });
-    } catch (error: any) {
-      console.error("Upload Error:", error.message || error);
-      setter({ status: 'error', file });
-      toast({
-        title: 'Upload Failed',
-        description: error.message || 'There was an error uploading your file. Please try again.',
-        variant: 'destructive',
-      });
-    }
+  const handleFileSelect = (file: File, setter: React.Dispatch<React.SetStateAction<UploadStatus>>) => {
+    setter({ status: 'success', file });
   };
 
   const handleSubmit = async () => {
     if (selfie.status !== 'success' || idFront.status !== 'success' || idBack.status !== 'success') {
       toast({
         title: 'Incomplete Submission',
-        description: 'Please upload all three required documents.',
+        description: 'Please select all three required documents.',
         variant: 'destructive',
       });
       return;
@@ -74,9 +43,9 @@ export default function KYCForm({ onVerificationSubmit }: { onVerificationSubmit
         await updateUserDoc(user.uid, {
           kycStatus: 'pending',
           kycDocuments: {
-            selfie: selfie.url,
-            idFront: idFront.url,
-            idBack: idBack.url,
+            selfie: selfie.file?.name,
+            idFront: idFront.file?.name,
+            idBack: idBack.file?.name,
             submittedAt: new Date().toISOString(),
           }
         });
@@ -121,8 +90,6 @@ export default function KYCForm({ onVerificationSubmit }: { onVerificationSubmit
               <p className="text-xs text-muted-foreground">{isDragActive ? "Drop the file here..." : "Click or drag to upload"}</p>
             </div>
           );
-        case 'uploading':
-          return <Loader2 className="h-8 w-8 animate-spin" />;
         case 'success':
           return (
              <div className="text-center">
@@ -130,13 +97,6 @@ export default function KYCForm({ onVerificationSubmit }: { onVerificationSubmit
                 <p className="text-xs text-muted-foreground truncate max-w-full px-2">{status.file?.name}</p>
              </div>
           );
-        case 'error':
-          return (
-             <div className="text-center">
-                <AlertCircle className="h-8 w-8 text-red-500 mx-auto" />
-                <p className="text-xs text-muted-foreground">Upload failed</p>
-             </div>
-            );
       }
     };
 
@@ -154,9 +114,9 @@ export default function KYCForm({ onVerificationSubmit }: { onVerificationSubmit
   return (
     <Card>
       <CardContent className="space-y-6 pt-6">
-        <Uploader title="Your Photo (Selfie)" onFileSelect={(file) => uploadFile(file, setSelfie)} status={selfie} />
-        <Uploader title="ID Front" onFileSelect={(file) => uploadFile(file, setIdFront)} status={idFront} />
-        <Uploader title="ID Back" onFileSelect={(file) => uploadFile(file, setIdBack)} status={idBack} />
+        <Uploader title="Your Photo (Selfie)" onFileSelect={(file) => handleFileSelect(file, setSelfie)} status={selfie} />
+        <Uploader title="ID Front" onFileSelect={(file) => handleFileSelect(file, setIdFront)} status={idFront} />
+        <Uploader title="ID Back" onFileSelect={(file) => handleFileSelect(file, setIdBack)} status={idBack} />
 
         <Button onClick={handleSubmit} disabled={isSubmitting || selfie.status !== 'success' || idFront.status !== 'success' || idBack.status !== 'success'} className="w-full">
           {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Submit for Verification'}
