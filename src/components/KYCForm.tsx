@@ -15,9 +15,9 @@ interface UploadStatus {
   url?: string;
 }
 
-const publicKey = process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY || "public_FQMUi9HrOlfgLwAUQAJPcj+MmR0=";
-const urlEndpoint = process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT || "https://ik.imagekit.io/lwr4hqcxw";
-const authenticationEndpoint = '/api/auth/imagekit';
+// const publicKey = process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY || "public_FQMUi9HrOlfgLwAUQAJPcj+MmR0=";
+// const urlEndpoint = process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT || "https://ik.imagekit.io/lwr4hqcxw";
+// const authenticationEndpoint = '/api/auth/imagekit';
 
 export default function KYCForm({ onVerificationSubmit }: { onVerificationSubmit: () => void }) {
   const { user } = useAuth();
@@ -108,15 +108,14 @@ export default function KYCForm({ onVerificationSubmit }: { onVerificationSubmit
        <div className="space-y-2">
          <Label>{title}</Label>
          <div className="relative flex justify-center items-center h-24 w-full border-2 border-dashed rounded-md">
-            {/*<IKUpload
+            {/* <IKUpload
                 fileName={`kyc-${user?.uid}-${title.toLowerCase().replace(' ', '-')}.jpg`}
                 onUploadStart={() => onStart()}
                 onSuccess={(res) => onSuccess(res)}
                 onError={(err) => onError(err)}
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-            />*/}
-            <p className="text-xs text-muted-foreground">Upload disabled</p>
-            {/*getUploaderState()*/}
+            /> */}
+            {getUploaderState()}
          </div>
        </div>
     );
@@ -130,13 +129,14 @@ export default function KYCForm({ onVerificationSubmit }: { onVerificationSubmit
     // >
       <Card>
         <CardContent className="space-y-6 pt-6">
-          <Uploader title="Your Photo (Selfie)" onStart={() => handleUploadStart(setSelfie)} onSuccess={(res) => handleUploadSuccess(setSelfie, res)} onError={(err) => handleUploadError(setSelfie, err)} status={selfie} />
+           <p className="text-sm text-center text-muted-foreground">KYC document upload is temporarily disabled. Please check back later.</p>
+          {/* <Uploader title="Your Photo (Selfie)" onStart={() => handleUploadStart(setSelfie)} onSuccess={(res) => handleUploadSuccess(setSelfie, res)} onError={(err) => handleUploadError(setSelfie, err)} status={selfie} />
           <Uploader title="ID Front" onStart={() => handleUploadStart(setIdFront)} onSuccess={(res) => handleUploadSuccess(setIdFront, res)} onError={(err) => handleUploadError(setIdFront, err)} status={idFront} />
           <Uploader title="ID Back" onStart={() => handleUploadStart(idBack)} onSuccess={(res) => handleUploadSuccess(idBack, res)} onError={(err) => handleUploadError(idBack, err)} status={idBack} />
 
           <Button onClick={handleSubmit} disabled={isSubmitting || selfie.status !== 'success' || idFront.status !== 'success' || idBack.status !== 'success'} className="w-full">
             {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Submit for Verification'}
-          </Button>
+          </Button> */}
         </CardContent>
       </Card>
     // </IKContext>
