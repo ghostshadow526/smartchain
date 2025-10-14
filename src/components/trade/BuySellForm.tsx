@@ -7,13 +7,16 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useState, useEffect } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
 
 interface BuySellFormProps {
     currentPrice: number | null;
     coinId: string;
+    portfolio: any[] | undefined;
 }
 
-function OrderForm({ type, price, coinId }: { type: 'buy' | 'sell', price: number | null, coinId: string }) {
+function OrderForm({ type, price, coinId, portfolio }: { type: 'buy' | 'sell', price: number | null, coinId: string, portfolio: any[] | undefined }) {
+  const { toast } = useToast();
   const buttonColor = type === 'buy' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700';
   const [amount, setAmount] = useState('');
   const [total, setTotal] = useState('');
@@ -41,6 +44,27 @@ function OrderForm({ type, price, coinId }: { type: 'buy' | 'sell', price: numbe
     }
   }
 
+  const handleTrade = () => {
+    if (type === 'sell') {
+      const coinInPortfolio = portfolio?.find(c => c.id === coinId);
+      const balance = coinInPortfolio ? coinInPortfolio.amount : 0;
+      if (!amount || parseFloat(amount) <= 0 || parseFloat(amount) > balance) {
+        toast({
+          title: "Insufficient Balance",
+          description: `You do not have enough ${coinId.toUpperCase()} to complete this trade. Please buy some first.`,
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    // Placeholder for actual trade execution
+    toast({
+        title: "Order Placed",
+        description: `Your ${type} order for ${amount} ${coinId.toUpperCase()} has been placed.`,
+    })
+  }
+
 
   return (
     <Tabs defaultValue="market" className="w-full">
@@ -61,7 +85,7 @@ function OrderForm({ type, price, coinId }: { type: 'buy' | 'sell', price: numbe
           <Label htmlFor="total">Total (USD)</Label>
           <Input id="total" placeholder="6000.00" value={total} onChange={handleTotalChange} type="text" />
         </div>
-        <Button className={`w-full capitalize ${buttonColor}`}>{type}</Button>
+        <Button className={`w-full capitalize ${buttonColor}`} onClick={handleTrade}>{type}</Button>
       </TabsContent>
       <TabsContent value="market" className="space-y-4 pt-2">
         <div className="space-y-2">
@@ -72,7 +96,7 @@ function OrderForm({ type, price, coinId }: { type: 'buy' | 'sell', price: numbe
           <Label htmlFor="total-market">Total (USD)</Label>
           <Input id="total-market" value={total} readOnly placeholder="6000.00" />
         </div>
-        <Button className={`w-full capitalize ${buttonColor}`}>{type}</Button>
+        <Button className={`w-full capitalize ${buttonColor}`} onClick={handleTrade}>{type}</Button>
       </TabsContent>
     </Tabs>
   );
@@ -121,7 +145,7 @@ function DirectBuyForm({ currentPrice }: { currentPrice: number | null }) {
     )
 }
 
-export default function BuySellForm({ currentPrice, coinId }: BuySellFormProps) {
+export default function BuySellForm({ currentPrice, coinId, portfolio }: BuySellFormProps) {
   return (
     <Card>
       <CardContent className="p-4">
@@ -137,10 +161,10 @@ export default function BuySellForm({ currentPrice, coinId }: BuySellFormProps) 
                     <TabsTrigger value="sell">Sell</TabsTrigger>
                 </TabsList>
                 <TabsContent value="buy">
-                    <OrderForm type="buy" price={currentPrice} coinId={coinId} />
+                    <OrderForm type="buy" price={currentPrice} coinId={coinId} portfolio={portfolio} />
                 </TabsContent>
                 <TabsContent value="sell">
-                    <OrderForm type="sell" price={currentPrice} coinId={coinId} />
+                    <OrderForm type="sell" price={currentPrice} coinId={coinId} portfolio={portfolio} />
                 </TabsContent>
             </Tabs>
           </TabsContent>

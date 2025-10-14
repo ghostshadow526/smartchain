@@ -26,7 +26,7 @@ const generateMockPrice = (coinId: string) => {
 }
 
 export default function TradePage() {
-  const { user, loading } = useAuth();
+  const { user, userData, loading } = useAuth();
   const router = useRouter();
   const [currentPair, setCurrentPair] = useState('bitcoin');
   const [currentPrice, setCurrentPrice] = useState<number | null>(null);
@@ -110,7 +110,7 @@ export default function TradePage() {
 
         {/* Right Column */}
         <div className="flex flex-col gap-2 h-full">
-            <BuySellForm currentPrice={currentPrice} coinId={currentPair} />
+            <BuySellForm currentPrice={currentPrice} coinId={currentPair} portfolio={userData?.portfolio} />
             <RecentTrades />
         </div>
       </div>
