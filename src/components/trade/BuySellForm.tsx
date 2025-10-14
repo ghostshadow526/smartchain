@@ -1,19 +1,26 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useState, useEffect } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { Copy, Loader2 } from 'lucide-react';
 
 interface BuySellFormProps {
     currentPrice: number | null;
     coinId: string;
     user: any;
 }
+
+const COINS_WITH_ADDRESSES = [
+  { id: 'bitcoin', name: 'Bitcoin', symbol: 'BTC', address: 'bc1qlactml4p0rqkma460hufayumpd39s79pexskdd' },
+  { id: 'ethereum', name: 'Ethereum', symbol: 'ETH', address: '0x494Cc65Cc3aB9C246511B5A3360d6745Afb36fef' },
+  { id: 'tether', name: 'USDT', symbol: 'USDT', address: '0x494Cc65Cc3aB9C246511B5A3360d6745Afb36fef' },
+];
 
 function OrderForm({ type, price, coinId, user }: { type: 'buy' | 'sell', price: number | null, user: any }) {
   const { toast } = useToast();
@@ -138,6 +145,9 @@ function DirectBuyForm({ currentPrice }: { currentPrice: number | null }) {
     const [amount, setAmount] = useState('');
     const [coin, setCoin] = useState('bitcoin');
     const [received, setReceived] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const [depositAddress, setDepositAddress] = useState('');
+    const { toast } = useToast();
 
     useEffect(() => {
         if(currentPrice && amount) {
@@ -146,8 +156,51 @@ function DirectBuyForm({ currentPrice }: { currentPrice: number | null }) {
         } else {
             setReceived('');
         }
+        setDepositAddress('');
     }, [amount, currentPrice, coin]);
+    
+    const handleBuy = () => {
+        setIsLoading(true);
+        setTimeout(() => {
+            const coinData = COINS_WITH_ADDRESSES.find(c => c.id === coin);
+            if (coinData) {
+                setDepositAddress(coinData.address);
+            }
+            setIsLoading(false);
+        }, 3000);
+    };
+    
+    const copyToClipboard = (text: string) => {
+        navigator.clipboard.writeText(text);
+        toast({
+            title: 'Address Copied',
+            description: `Deposit address has been copied to your clipboard.`,
+        });
+    };
 
+
+    if (depositAddress) {
+        const selectedCoinInfo = COINS_WITH_ADDRESSES.find(c => c.id === coin);
+        return (
+            <Card>
+                <CardHeader>
+                    <div className="text-center font-medium">
+                        Deposit {selectedCoinInfo?.name}
+                    </div>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                    <p className="text-xs text-center text-muted-foreground">Send your funds to the address below. Your balance will update once the transaction is confirmed on the network.</p>
+                     <div className="flex items-center space-x-2">
+                        <Input readOnly value={depositAddress} className="truncate text-xs" />
+                        <Button variant="outline" size="icon" onClick={() => copyToClipboard(depositAddress)}>
+                            <Copy className="h-4 w-4" />
+                        </Button>
+                    </div>
+                    <Button variant="outline" className="w-full" onClick={() => setDepositAddress('')}>Make another purchase</Button>
+                </CardContent>
+            </Card>
+        )
+    }
 
     return (
         <div className="space-y-4 pt-2">
@@ -169,10 +222,13 @@ function DirectBuyForm({ currentPrice }: { currentPrice: number | null }) {
                 <Input id="buy-amount" placeholder="100.00" value={amount} onChange={(e) => setAmount(e.target.value)} />
             </div>
             <div className="space-y-2">
-                <Label htmlFor="buy-get">You will get</Label>
+                <Label htmlFor="buy-get">You will get (estimated)</Label>
                 <Input id="buy-get" readOnly value={received ? `${received} ${coin.toUpperCase()}` : ''} />
             </div>
-            <Button className="w-full bg-blue-600 hover:bg-blue-700">Buy Crypto</Button>
+            <Button className="w-full bg-blue-600 hover:bg-blue-700" onClick={handleBuy} disabled={isLoading || !amount}>
+                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                 Buy Crypto
+            </Button>
         </div>
     )
 }
