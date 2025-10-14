@@ -110,7 +110,7 @@ export default function TradePage() {
 
         {/* Right Column */}
         <div className="flex flex-col gap-2 h-full">
-            <BuySellForm currentPrice={currentPrice} coinId={currentPair} portfolio={userData?.portfolio} />
+            <BuySellForm currentPrice={currentPrice} coinId={currentPair} user={userData} />
             <RecentTrades />
         </div>
       </div>

@@ -12,14 +12,17 @@ import { useToast } from '@/hooks/use-toast';
 interface BuySellFormProps {
     currentPrice: number | null;
     coinId: string;
-    portfolio: any[] | undefined;
+    user: any;
 }
 
-function OrderForm({ type, price, coinId, portfolio }: { type: 'buy' | 'sell', price: number | null, coinId: string, portfolio: any[] | undefined }) {
+function OrderForm({ type, price, coinId, user }: { type: 'buy' | 'sell', price: number | null, user: any }) {
   const { toast } = useToast();
   const buttonColor = type === 'buy' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700';
   const [amount, setAmount] = useState('');
   const [total, setTotal] = useState('');
+
+  const portfolio = user?.portfolio;
+  const balance = user?.balance;
 
   useEffect(() => {
     if (price && amount) {
@@ -45,10 +48,33 @@ function OrderForm({ type, price, coinId, portfolio }: { type: 'buy' | 'sell', p
   }
 
   const handleTrade = () => {
+    const numericAmount = parseFloat(amount);
+    const numericTotal = parseFloat(total);
+
+    if (!numericAmount || numericAmount <= 0) {
+        toast({
+            title: "Invalid Amount",
+            description: "Please enter a valid amount to trade.",
+            variant: "destructive"
+        });
+        return;
+    }
+
+    if (type === 'buy') {
+        if (!numericTotal || numericTotal <= 0 || numericTotal > balance) {
+            toast({
+              title: "Insufficient USD Balance",
+              description: `You do not have enough USD to complete this purchase. Please deposit funds.`,
+              variant: "destructive",
+            });
+            return;
+        }
+    }
+
     if (type === 'sell') {
-      const coinInPortfolio = portfolio?.find(c => c.id === coinId);
-      const balance = coinInPortfolio ? coinInPortfolio.amount : 0;
-      if (!amount || parseFloat(amount) <= 0 || parseFloat(amount) > balance) {
+      const coinInPortfolio = portfolio?.find((c: any) => c.id === coinId);
+      const coinBalance = coinInPortfolio ? coinInPortfolio.amount : 0;
+      if (numericAmount > coinBalance) {
         toast({
           title: "Insufficient Balance",
           description: `You do not have enough ${coinId.toUpperCase()} to complete this trade. Please buy some first.`,
@@ -89,12 +115,18 @@ function OrderForm({ type, price, coinId, portfolio }: { type: 'buy' | 'sell', p
       </TabsContent>
       <TabsContent value="market" className="space-y-4 pt-2">
         <div className="space-y-2">
-          <Label htmlFor="amount-market">Amount ({coinId.toUpperCase()})</Label>
+            <div className='flex justify-between items-center'>
+                 <Label htmlFor="amount-market">Amount ({coinId.toUpperCase()})</Label>
+                 { type === 'sell' && <span className="text-xs text-muted-foreground">Balance: {portfolio?.find((c:any) => c.id === coinId)?.amount?.toFixed(6) || '0.00'}</span> }
+            </div>
           <Input id="amount-market" placeholder="0.1" value={amount} onChange={handleAmountChange} type="text" />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="total-market">Total (USD)</Label>
-          <Input id="total-market" value={total} readOnly placeholder="6000.00" />
+            <div className='flex justify-between items-center'>
+                 <Label htmlFor="total-market">Total (USD)</Label>
+                 { type === 'buy' && <span className="text-xs text-muted-foreground">Balance: ${balance?.toLocaleString() || '0.00'}</span> }
+            </div>
+          <Input id="total-market" value={total} onChange={handleTotalChange} type="text" placeholder="6000.00" />
         </div>
         <Button className={`w-full capitalize ${buttonColor}`} onClick={handleTrade}>{type}</Button>
       </TabsContent>
@@ -145,7 +177,7 @@ function DirectBuyForm({ currentPrice }: { currentPrice: number | null }) {
     )
 }
 
-export default function BuySellForm({ currentPrice, coinId, portfolio }: BuySellFormProps) {
+export default function BuySellForm({ currentPrice, coinId, user }: BuySellFormProps) {
   return (
     <Card>
       <CardContent className="p-4">
@@ -161,10 +193,10 @@ export default function BuySellForm({ currentPrice, coinId, portfolio }: BuySell
                     <TabsTrigger value="sell">Sell</TabsTrigger>
                 </TabsList>
                 <TabsContent value="buy">
-                    <OrderForm type="buy" price={currentPrice} coinId={coinId} portfolio={portfolio} />
+                    <OrderForm type="buy" price={currentPrice} coinId={coinId} user={user} />
                 </TabsContent>
                 <TabsContent value="sell">
-                    <OrderForm type="sell" price={currentPrice} coinId={coinId} portfolio={portfolio} />
+                    <OrderForm type="sell" price={currentPrice} coinId={coinId} user={user} />
                 </TabsContent>
             </Tabs>
           </TabsContent>
