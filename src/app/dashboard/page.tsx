@@ -14,6 +14,7 @@ import { Copy, Loader2, ShieldCheck, ShieldAlert } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { CryptoPriceResponse } from '@/lib/types';
+import KYCForm from '@/components/KYCForm';
 
 
 const COINS_WITH_ADDRESSES = [
@@ -34,6 +35,7 @@ export default function DashboardPage() {
   const [selectedCoin, setSelectedCoin] = useState('');
   const [isDepositing, setIsDepositing] = useState(false);
   const [depositAddress, setDepositAddress] = useState('');
+  const [isKycDialogOpen, setIsKycDialogOpen] = useState(false);
 
 
   useEffect(() => {
@@ -195,8 +197,18 @@ export default function DashboardPage() {
                     <span>KYC Status</span>
                     <KycStatus />
                 </div>
-                {userData.kycStatus !== 'verified' && (
-                    <Button className="w-full">Start KYC Verification</Button>
+                {userData.kycStatus !== 'verified' && userData.kycStatus !== 'pending' && (
+                  <Dialog open={isKycDialogOpen} onOpenChange={setIsKycDialogOpen}>
+                      <DialogTrigger asChild>
+                          <Button className="w-full">Start KYC Verification</Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-lg">
+                          <KYCForm onVerificationSubmit={() => setIsKycDialogOpen(false)} />
+                      </DialogContent>
+                  </Dialog>
+                )}
+                 {userData.kycStatus === 'pending' && (
+                    <p className="text-sm text-muted-foreground text-center pt-2">Your documents are under review. We will notify you once the process is complete.</p>
                 )}
             </CardContent>
         </Card>
