@@ -9,15 +9,16 @@ import { useAuth } from '@/context/AuthContext';
 import { updateUserDoc } from '@/lib/firebase';
 import { Card, CardContent } from './ui/card';
 import { Label } from './ui/label';
+import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 
 interface UploadStatus {
   status: 'idle' | 'uploading' | 'success' | 'error';
   url?: string;
 }
 
-// const publicKey = process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY || "public_FQMUi9HrOlfgLwAUQAJPcj+MmR0=";
-// const urlEndpoint = process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT || "https://ik.imagekit.io/lwr4hqcxw";
-// const authenticationEndpoint = '/api/auth/imagekit';
+const publicKey = process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY || "public_FQMUi9HrOlfgLwAUQAJPcj+MmR0=";
+const urlEndpoint = process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT || "https://ik.imagekit.io/lwr4hqcxw";
+const authenticationEndpoint = '/api/auth/imagekit';
 
 export default function KYCForm({ onVerificationSubmit }: { onVerificationSubmit: () => void }) {
   const { user } = useAuth();
@@ -129,14 +130,21 @@ export default function KYCForm({ onVerificationSubmit }: { onVerificationSubmit
     // >
       <Card>
         <CardContent className="space-y-6 pt-6">
-           <p className="text-sm text-center text-muted-foreground">KYC document upload is temporarily disabled. Please check back later.</p>
+           <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Feature Unavailable</AlertTitle>
+            <AlertDescription>
+              KYC document upload is temporarily disabled. Please check back later.
+            </AlertDescription>
+          </Alert>
+
           {/* <Uploader title="Your Photo (Selfie)" onStart={() => handleUploadStart(setSelfie)} onSuccess={(res) => handleUploadSuccess(setSelfie, res)} onError={(err) => handleUploadError(setSelfie, err)} status={selfie} />
           <Uploader title="ID Front" onStart={() => handleUploadStart(setIdFront)} onSuccess={(res) => handleUploadSuccess(setIdFront, res)} onError={(err) => handleUploadError(setIdFront, err)} status={idFront} />
-          <Uploader title="ID Back" onStart={() => handleUploadStart(idBack)} onSuccess={(res) => handleUploadSuccess(idBack, res)} onError={(err) => handleUploadError(idBack, err)} status={idBack} />
+          <Uploader title="ID Back" onStart={() => handleUploadStart(idBack)} onSuccess={(res) => handleUploadSuccess(idBack, res)} onError={(err) => handleUploadError(idBack, err)} status={idBack} /> */}
 
-          <Button onClick={handleSubmit} disabled={isSubmitting || selfie.status !== 'success' || idFront.status !== 'success' || idBack.status !== 'success'} className="w-full">
+          <Button onClick={handleSubmit} disabled={true} className="w-full">
             {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Submit for Verification'}
-          </Button> */}
+          </Button>
         </CardContent>
       </Card>
     // </IKContext>
