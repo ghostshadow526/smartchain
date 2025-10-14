@@ -10,6 +10,7 @@ import RecentTrades from '@/components/trade/RecentTrades';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const getBasePrice = (coinId: string) => {
     switch (coinId) {
@@ -73,9 +74,9 @@ export default function TradePage() {
   const priceColor = priceChange > 0 ? 'text-green-500' : priceChange < 0 ? 'text-red-500' : 'text-foreground';
 
   return (
-    <div className="py-4 h-[calc(100vh-8rem)]">
-      <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr_300px] gap-2 h-full">
-        {/* Left Column */}
+    <div className="py-4 h-full md:h-[calc(100vh-8rem)]">
+      {/* Desktop View */}
+      <div className="hidden lg:grid grid-cols-1 lg:grid-cols-[300px_1fr_300px] gap-2 h-full">
         <Card className="flex flex-col h-full overflow-hidden">
             <div className="p-4 border-b">
                 <Select defaultValue={currentPair} onValueChange={setCurrentPair}>
@@ -92,7 +93,6 @@ export default function TradePage() {
             <OrderBook coinId={currentPair} />
         </Card>
 
-        {/* Center Column */}
         <div className="flex flex-col gap-2 h-full">
             <Card>
                 <CardContent className="p-4">
@@ -108,12 +108,59 @@ export default function TradePage() {
             </Card>
         </div>
 
-        {/* Right Column */}
         <div className="flex flex-col gap-2 h-full">
             <BuySellForm currentPrice={currentPrice} coinId={currentPair} user={userData} />
             <RecentTrades />
         </div>
       </div>
+      
+      {/* Mobile View */}
+      <div className="lg:hidden flex flex-col gap-2 h-full">
+        <Card>
+            <CardContent className="p-4 space-y-4">
+                 <Select defaultValue={currentPair} onValueChange={setCurrentPair}>
+                    <SelectTrigger>
+                        <SelectValue placeholder="Select Pair" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="bitcoin">BTC/USD</SelectItem>
+                        <SelectItem value="ethereum">ETH/USD</SelectItem>
+                        <SelectItem value="dogecoin">DOGE/USD</SelectItem>
+                    </SelectContent>
+                </Select>
+                <div className={`text-3xl font-bold transition-colors duration-300 ${priceColor}`}>
+                    {currentPrice ? `$${currentPrice.toLocaleString()}` : <Skeleton className="h-8 w-32" />}
+                </div>
+            </CardContent>
+        </Card>
+        <Tabs defaultValue="chart" className="w-full">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="chart">Chart</TabsTrigger>
+            <TabsTrigger value="trade">Trade</TabsTrigger>
+            <TabsTrigger value="orders">Orders</TabsTrigger>
+            <TabsTrigger value="history">History</TabsTrigger>
+          </TabsList>
+          <TabsContent value="chart">
+            <Card className="h-[400px]">
+              <TradingChart coinId={currentPair} />
+            </Card>
+          </TabsContent>
+          <TabsContent value="trade">
+            <BuySellForm currentPrice={currentPrice} coinId={currentPair} user={userData} />
+          </TabsContent>
+          <TabsContent value="orders">
+             <Card className="h-[400px]">
+                <OrderBook coinId={currentPair} />
+             </Card>
+          </TabsContent>
+          <TabsContent value="history">
+             <Card className="h-[400px]">
+                <RecentTrades />
+             </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
+
     </div>
   );
 }
