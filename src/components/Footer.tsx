@@ -23,7 +23,6 @@ const footerSections = [
     links: [
       { name: 'Buy & sell', href: '/buy-sell' },
       { name: 'Base App', href: '/base-app' },
-      { name: 'Coinbase One', href: '/coinbase-one' },
       { name: 'Credit Card', href: '/credit-card' },
       { name: 'Debit Card', href: '/debit-card' },
     ],
