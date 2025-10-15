@@ -1,0 +1,53 @@
+'use client';
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Code, ShoppingCart, Globe } from "lucide-react";
+
+export default function CommercePage() {
+    return (
+        <div className="container mx-auto py-16 px-4 text-center">
+            <h1 className="text-4xl md:text-5xl font-bold tracking-tight">ECNFOUNDATION Commerce</h1>
+            <p className="text-lg md:text-xl text-muted-foreground mt-4 max-w-3xl mx-auto">
+                The easiest way for your business to start accepting cryptocurrency payments. Integrate in minutes and open your doors to the world of crypto.
+            </p>
+
+             <div className="mt-16 max-w-5xl mx-auto">
+                <h2 className="text-3xl font-bold mb-8">Powering the Next Generation of Commerce</h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
+                    <Card>
+                        <CardHeader>
+                            <div className="flex items-center gap-3">
+                                <ShoppingCart className="w-6 h-6 text-primary" />
+                                <CardTitle>Easy Integration</CardTitle>
+                            </div>
+                        </CardHeader>
+                        <CardContent><p className="text-muted-foreground">With just a few lines of code, you can start accepting crypto payments on your website or app.</p></CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader>
+                             <div className="flex items-center gap-3">
+                                <Globe className="w-6 h-6 text-primary" />
+                                <CardTitle>Global & Borderless</CardTitle>
+                            </div>
+                        </CardHeader>
+                        <CardContent><p className="text-muted-foreground">Reach customers from all over the world without the complexities of traditional international payments.</p></CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader>
+                            <div className="flex items-center gap-3">
+                                <Code className="w-6 h-6 text-primary" />
+                                <CardTitle>Developer Friendly</CardTitle>
+                            </div>
+                        </CardHeader>
+                        <CardContent><p className="text-muted-foreground">Our robust API and comprehensive documentation make it simple to build custom payment experiences.</p></CardContent>
+                    </Card>
+                </div>
+            </div>
+
+            <div className="mt-12">
+                <Button size="lg">Explore the Docs</Button>
+            </div>
+        </div>
+    );
+}

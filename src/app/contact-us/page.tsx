@@ -1,12 +1,60 @@
 'use client';
 
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
+
 export default function ContactUsPage() {
+    const { toast } = useToast();
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        toast({
+            title: "Message Sent",
+            description: "Thank you for contacting us. Our team will get back to you shortly.",
+        });
+    };
+
     return (
-        <div className="flex flex-col items-center justify-center text-center py-16 h-[calc(100vh-12rem)]">
-            <h1 className="text-5xl font-bold tracking-tight">Contact Us</h1>
-            <p className="text-muted-foreground mt-4 text-lg max-w-2xl">
-                This page is coming soon. Stay tuned for updates!
+        <div className="container mx-auto py-12 px-4 max-w-2xl">
+            <h1 className="text-4xl font-bold tracking-tight text-center mb-8">Contact Us</h1>
+            <p className="text-lg text-muted-foreground text-center mb-12">
+                Have a question or need assistance? Fill out the form below and we'll get back to you as soon as possible.
             </p>
+            <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                        <Label htmlFor="name">Full Name</Label>
+                        <Input id="name" required />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="email">Email Address</Label>
+                        <Input id="email" type="email" required />
+                    </div>
+                </div>
+                 <div className="space-y-2">
+                    <Label htmlFor="category">Topic</Label>
+                    <Select>
+                        <SelectTrigger id="category">
+                            <SelectValue placeholder="Select a topic" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="account">Account Support</SelectItem>
+                            <SelectItem value="trading">Trading &amp; Fees</SelectItem>
+                            <SelectItem value="security">Security Concern</SelectItem>
+                            <SelectItem value="general">General Inquiry</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+                 <div className="space-y-2">
+                    <Label htmlFor="message">Message</Label>
+                    <Textarea id="message" required rows={6} />
+                </div>
+                <Button type="submit" className="w-full">Send Message</Button>
+            </form>
         </div>
     );
 }

@@ -1,0 +1,41 @@
+'use client';
+
+export default function UKModernSlaveryStatementPage() {
+    return (
+        <div className="container mx-auto py-12 px-4 max-w-4xl">
+            <h1 className="text-4xl font-bold tracking-tight mb-4">UK Modern Slavery Act Statement</h1>
+            <p className="text-muted-foreground text-sm mb-8">For the Financial Year Ending December 31, 2023</p>
+
+            <div className="space-y-6 text-muted-foreground">
+                <h2 className="text-2xl font-semibold text-foreground pt-4">Introduction</h2>
+                <p>
+                    This statement is made pursuant to section 54(1) of the Modern Slavery Act 2015 and constitutes our slavery and human trafficking statement for the financial year ending December 31, 2023. ECNFOUNDATION is committed to preventing modern slavery and human trafficking in our business and supply chains.
+                </p>
+
+                <h2 className="text-2xl font-semibold text-foreground pt-4">Our Business and Supply Chains</h2>
+                <p>
+                    ECNFOUNDATION is a leading digital asset platform. Our supply chains include partners for technology infrastructure, payment processing, marketing, and professional services. We are committed to working with suppliers who share our values and our commitment to ethical practices.
+                </p>
+
+                <h2 className="text-2xl font-semibold text-foreground pt-4">Our Policies</h2>
+                <p>
+                    We have a zero-tolerance approach to modern slavery. Our internal policies reflect our commitment to acting ethically and with integrity in all our business relationships. We expect the same high standards from all of our contractors, suppliers, and other business partners.
+                </p>
+
+                <h2 className="text-2xl font-semibold text-foreground pt-4">Due Diligence and Risk Assessment</h2>
+                <p>
+                    As part of our initiative to identify and mitigate risk, we conduct due diligence on our suppliers. We assess potential risks of modern slavery and human trafficking and take steps to address any areas of concern. We will not knowingly work with any organization that is involved in modern slavery.
+                </p>
+
+                <h2 className="text-2xl font-semibold text-foreground pt-4">Training and Awareness</h2>
+                <p>
+                    To ensure a high level of understanding of the risks of modern slavery and human trafficking in our supply chains and our business, we provide training to our staff. We also raise awareness of our policies and commitment to combating this issue.
+                </p>
+
+                <p className="font-semibold text-foreground pt-6">
+                    This statement has been approved by the board of directors of ECNFOUNDATION.
+                </p>
+            </div>
+        </div>
+    );
+}
