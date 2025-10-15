@@ -10,9 +10,11 @@ export default function LivePrices() {
   const [allCoins, setAllCoins] = useState<CoinDetails[] | null>(null);
   const [filteredCoins, setFilteredCoins] = useState<CoinDetails[] | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
   const fetchPrices = async () => {
+    setError(null);
     try {
       // Fetching more coins, you can increase the per_page limit
       const res = await fetch(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=false`);
@@ -23,6 +25,7 @@ export default function LivePrices() {
       setAllCoins(data);
     } catch (error) {
       console.error(error);
+      setError('Failed to load prices. Please try again later.');
     } finally {
       setLoading(false);
     }
@@ -59,11 +62,11 @@ export default function LivePrices() {
     );
   }
 
-  if (!allCoins) {
-    return <div className="text-center text-destructive">Failed to load prices. Please try again later.</div>;
+  if (error) {
+    return <div className="text-center text-destructive">{error}</div>;
   }
   
-  const coinsToDisplay = filteredCoins || allCoins.slice(0, 12);
+  const coinsToDisplay = filteredCoins || allCoins?.slice(0, 12) || [];
 
   return (
     <div className="space-y-6">
