@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { LayoutDashboard } from 'lucide-react';
+import { LayoutDashboard, Home } from 'lucide-react';
 import { Button } from './ui/button';
 import { useAuth } from '@/context/AuthContext';
 import { signOutUser } from '@/lib/firebase';
@@ -25,6 +25,10 @@ export default function Header() {
           <span className="font-bold">ECNFOUNDATION</span>
         </Link>
         <nav className="flex items-center gap-6 text-sm">
+          <Link href="/" className="text-foreground/60 transition-colors hover:text-foreground/80 flex items-center gap-1">
+            <Home className="h-4 w-4" />
+            Home
+          </Link>
           {user && (
              <Link href="/dashboard" className="text-foreground/60 transition-colors hover:text-foreground/80 flex items-center gap-1">
               <LayoutDashboard className="h-4 w-4" />
