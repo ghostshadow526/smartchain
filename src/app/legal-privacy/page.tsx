@@ -27,7 +27,7 @@ export default function LegalPrivacyPage() {
                 <AccordionItem value="item-3">
                     <AccordionTrigger>Cookie Policy</AccordionTrigger>
                     <AccordionContent>
-                        We use cookies to improve your experience on our site. Our Cookie Policy details what cookies are, how we use them, and how you can manage your preferences. Learn more on our <Link href="/cookie-policy".tsx" className="text-primary hover:underline">Cookie Policy</Link> page.
+                        We use cookies to improve your experience on our site. Our Cookie Policy details what cookies are, how we use them, and how you can manage your preferences. Learn more on our <Link href="/cookie-policy" className="text-primary hover:underline">Cookie Policy</Link> page.
                     </AccordionContent>
                 </AccordionItem>
                 <AccordionItem value="item-4">

@@ -1,6 +1,6 @@
 'use client';
 
-import { Button } from "@/components_ui/button";
+import { Button } from "@/components/ui/button";
 import { Bot } from "lucide-react";
 
 export default function AgentKitPage() {
